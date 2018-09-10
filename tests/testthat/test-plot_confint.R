@@ -1,4 +1,4 @@
-context("conf_intervals and profile_loglik")
+context("conf_intervals and profile_loglik and confint S3 method")
 
 # -------------------------- GEV model, owtemps data -----------------------
 # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
@@ -49,6 +49,14 @@ test_that("Inappropriate which_par gives an error", {
   testthat::expect_identical(class(check_error), "try-error")
 })
 
+# confint S3 method
+
+S3a <- confint(large)
+S3b <- confint(large, parm = 1:6)
+test_that("confint S3: parm works", {
+  testthat::expect_equal(S3a, S3b)
+})
+
 # Check a restricted model, i.e. one with non-NULL fixed_pars
 
 medium <- adjust_loglik(larger = large, fixed_pars = c("sigma[1]", "xi[1]"))
@@ -86,7 +94,8 @@ medium <- adjust_loglik(larger = large, fixed_pars = "xi[1]")
 
 # Profile loglikelihood for xi0, evaluated at xi0 = -0.1
 res3 <- profile_loglik(medium, prof_pars = "xi[0]", prof_vals = -0.1)
-res4 <- profile_loglik(medium, prof_pars = 5, prof_vals = -0.1)
+res4 <- profile_loglik(medium, prof_pars = 5, prof_vals = -0.1,
+                       method = "L-BFGS-B")
 
 test_that("medium GEV model: numeric vs character which_pars", {
   testthat::expect_equal(res3, res4, tolerance = my_tol)

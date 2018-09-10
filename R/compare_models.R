@@ -2,22 +2,25 @@
 
 #' Comparison of nested models
 #'
-#' Compares nested models using the adjusted likelihood ratio statistic (ALRS)
-#' described in Section 3.5 of
+#' Compares nested models using the adjusted likelihood ratio test statistic
+#' (ALRTS) described in Section 3.5 of
 #' \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
 #' The nesting must result from the simple constraint that a subset of the
 #' parameters of the larger model is held fixed.
 #'
 #' @param larger An object of class \code{"chandwich"} returned by
-#'   \code{adjust_loglik}.  The larger of the two models.
+#'   \code{\link{adjust_loglik}}.  The larger of the two models.
 #' @param smaller An object of class \code{"chandwich"} returned by
-#'   \code{adjust_loglik}.  The smaller of the two models.
+#'   \code{\link{adjust_loglik}}.  The smaller of the two models.
 #'
 #'   If \code{smaller} is supplied then the arguments \code{fixed_pars} and
 #'   \code{fixed_at} described below are ignored.
 #' @param approx A logical scalar.  If \code{approx = TRUE} then the
 #'   approximation detailed by equations (18)-(20) of Chandler and Bate (2007)
 #'   is used.  This option is available only if \code{smaller} is supplied.
+#'   If \code{smaller} is not supplied then \code{approx = TRUE} is used,
+#'   with no warning.
+#'
 #'   The approximation doesn't make sense if \code{type = "none"}.  If
 #'   \code{type = "none"} and \code{approx = TRUE} then \code{approx} is
 #'   set to \code{FALSE} with no warning.
@@ -90,6 +93,7 @@
 #'   individual parameters.
 #' @seealso \code{\link{conf_region}} for a confidence region for
 #'   pairs of parameters.
+#' @seealso \code{\link{print.compmod}}.
 #' @examples
 #' # -------------------------- GEV model, owtemps data -----------------------
 #' # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
@@ -185,7 +189,9 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
   # Setup and checks -----------------------------------------------------------
   #
   # The number of parameters in the larger model
-  p <- attr(larger, "p_current")
+  p_l <- attr(larger, "p_current")
+  # The number of parameters in the full model
+  p_full <- attr(larger, "p_full")
   # Extract the fixed parameters (if any) from the larger model
   l_fixed_pars <- attr(larger, "fixed_pars")
   l_fixed_at <- attr(larger, "fixed_at")
@@ -203,7 +209,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
     #     attr(smaller, "fixed_pars") must have the same corresponding values
     #     in attr(larger, "fixed_at") and attr(smaller, "fixed_at")
     p_s <- attr(smaller, "p_current")
-    nest_1 <- p > p_s
+    nest_1 <- p_l > p_s
     fixed_pars <- attr(smaller, "fixed_pars")
     fixed_at <- attr(smaller, "fixed_at")
     s_fixed_pars <- fixed_pars
@@ -218,18 +224,22 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
       stop("smaller is not nested in larger: ",
            "parameter(s) fixed at different values")
     }
-    qq <- p - p_s
+    qq <- p_l - p_s
     s_mle <- attr(smaller, "MLE")
     l_mle <- attr(larger, "MLE")
-    pars <- numeric(p)
+    # To ensure that the parameter vectors passed to the models have the
+    # correct parameter values in the correct places first set up a
+    # parameter vector with length equal to the number of parameters in the
+    # full model, allocate values, and then prune if necessary
+    pars <- numeric(p_full)
     pars[fixed_pars] <- fixed_at
-    free_pars <- (1:p)[-fixed_pars]
+    free_pars <- (1:p_full)[-fixed_pars]
     pars[free_pars] <- s_mle
     if (!is.null(attr(larger, "fixed_pars"))) {
       pars <- pars[-attr(larger, "fixed_pars")]
     }
-    max_loglik_smaller <- do.call(larger, list(pars, type = type))
     if (approx) {
+      max_loglik_smaller <- do.call(larger, list(pars, type = type))
       HA <- attr(larger, "HA")
       R <- solve(-HA)
       # We want only the parameters that are fixed in smaller but not in larger
@@ -257,6 +267,12 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
       if (is.null(init) || length(init) != p_s) {
         init <- attr(smaller, "MLE")
       }
+    }
+  } else {
+    # If smaller is not supplied and fixed_pars is numeric then infer the names
+    # of the fixed parameters, if these are available in larger
+    if (!is.null(attr(larger, "full_par_names"))) {
+      names(fixed_pars) <- attr(larger, "full_par_names")[fixed_pars]
     }
   }
   if (is.null(fixed_pars)) {
@@ -298,15 +314,15 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
     stop("smaller is not nested in larger: ",
          "parameter(s) fixed at different values")
   }
-  if (len_fixed_pars >= p) {
+  if (len_fixed_pars >= p_l) {
     stop("length(fixed_pars) must be smaller than attr(larger, ''MLE'')")
   }
   if (!(length(fixed_at) %in% c(1, len_fixed_pars))) {
     stop("the lengths of 'fixed_pars' and 'fixed_at' are not compatible")
   }
-  free_pars <- (1:p)[-fixed_pars]
+  free_pars <- (1:p_full)[-fixed_pars]
   p_s <- length(free_pars)
-  qq <- p - p_s
+  qq <- p_l - p_s
   #
   # Extract arguments to be passed to optim()
   optim_args <- list(...)
@@ -324,7 +340,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
   # under the constraint that certain parameter(s) are fixed.
   # Function to minimise to find restricted MLE of adjusted loglikelihood
   neg_adj_loglik <- function(x) {
-    pars <- numeric(p)
+    pars <- numeric(p_full)
     pars[fixed_pars] <- fixed_at
     pars[free_pars] <- x
     if (!is.null(attr(larger, "fixed_pars"))) {
@@ -337,7 +353,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
   if (optim_args$method == "L-BFGS-B" || optim_args$method == "Brent") {
     big_finite_val <- 10 ^ 10
     neg_adj_loglik <- function(x) {
-      pars <- numeric(p)
+      pars <- numeric(p_full)
       pars[fixed_pars] <- fixed_at
       pars[free_pars] <- x
       if (!is.null(attr(larger, "fixed_pars"))) {
@@ -369,4 +385,150 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
                     smaller_fixed_at = s_fixed_at, approx = approx)
   class(comp_list) <- "compmod"
   return(comp_list)
+}
+
+# ============================= anova.chandwich ===============================
+
+#' Comparison of nested models
+#'
+#' \code{anova} method for objects of class \code{"chandwich"}.
+#' Compares two or more nested models using the adjusted likelihood ratio
+#' test statistic (ALRTS) described in Section 3.5 of
+#' \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
+#' The nesting must result from the simple constraint that a subset of the
+#' parameters of the larger model is held fixed.
+#'
+#' @param object An object of class \code{"chandwich"}, returned by
+#'   \code{\link{adjust_loglik}}.
+#' @param object2 An object of class \code{"chandwich"}, returned by
+#'   \code{\link{adjust_loglik}}.
+#' @param ... Further objects of class \code{"chandwich"} and/or arguments
+#'   to be passed to \code{\link{compare_models}}.  The name of any object
+#'   of class \code{"chandwich"} passed via ... must not match any argument of
+#'   \code{\link{compare_models}} or any argument of
+#'   \code{\link[stats]{optim}}.
+#' @details For details the adjusted likelihood ratio test see
+#' \code{\link{compare_models}} and Chandler and Bate (2007).
+#'
+#'   The objects of class \code{"chandwich"} need not be provided in nested
+#'   order: they will be ordered inside \code{anova.chandwich} based on the
+#'   values of \code{attr(., "p_current")}.
+#' @return An object of class \code{"anova"} inheriting from class
+#'  \code{"data.frame"}, with four columns:
+#'     \item{Model.Df}{The number of parameters in the model}
+#'     \item{Df}{The decrease in the number of parameter compared the model
+#'       in the previous row}
+#'     \item{ALRTS}{The adjusted likelihood ratio test statistic}
+#'     \item{Pr(>ALRTS)}{The p-value associated with the test that the
+#'       model is a valid simplication of the model in the previous row.}
+#'  The row names are the names of the model objects.
+#' @seealso \code{\link{compare_models}} for an adjusted likelihood ratio test
+#'   of two models.
+#' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
+#'   loglikelihood function.
+#' @seealso \code{\link{conf_intervals}} for confidence intervals for
+#'   individual parameters.
+#' @seealso \code{\link{conf_region}} for a confidence region for
+#'   pairs of parameters.
+#' @references Chandler, R. E. and Bate, S. (2007). Inference for clustered
+#'   data using the independence loglikelihood. \emph{Biometrika},
+#'   \strong{94}(1), 167-183. \url{http://dx.doi.org/10.1093/biomet/asm015}
+#' @examples
+#' # -------------------------- GEV model, owtemps data -----------------------
+#' # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
+#'
+#' gev_loglik <- function(pars, data) {
+#'   o_pars <- pars[c(1, 3, 5)] + pars[c(2, 4, 6)]
+#'   w_pars <- pars[c(1, 3, 5)] - pars[c(2, 4, 6)]
+#'   if (o_pars[2] <= 0 | w_pars[2] <= 0) return(-Inf)
+#'   o_data <- data[, "Oxford"]
+#'   w_data <- data[, "Worthing"]
+#'   check <- 1 + o_pars[3] * (o_data - o_pars[1]) / o_pars[2]
+#'   if (any(check <= 0)) return(-Inf)
+#'   check <- 1 + w_pars[3] * (w_data - w_pars[1]) / w_pars[2]
+#'   if (any(check <= 0)) return(-Inf)
+#'   o_loglik <- log_gev(o_data, o_pars[1], o_pars[2], o_pars[3])
+#'   w_loglik <- log_gev(w_data, w_pars[1], w_pars[2], w_pars[3])
+#'   return(o_loglik + w_loglik)
+#' }
+#'
+#' # Initial estimates (method of moments for the Gumbel case)
+#' sigma <- as.numeric(sqrt(6 * diag(var(owtemps))) / pi)
+#' mu <- as.numeric(colMeans(owtemps) - 0.57722 * sigma)
+#' init <- c(mean(mu), -diff(mu) / 2, mean(sigma), -diff(sigma) / 2, 0, 0)
+#'
+#' # Log-likelihood adjustment of the full model
+#' par_names <- c("mu[0]", "mu[1]", "sigma[0]", "sigma[1]", "xi[0]", "xi[1]")
+#' large <- adjust_loglik(gev_loglik, data = owtemps, init = init,
+#'          par_names = par_names)
+#'
+#' # Log-likelihood adjustment of some smaller models: xi[1] = 0 etc
+#'
+#' medium <- adjust_loglik(larger = large, fixed_pars = "xi[1]")
+#' small <- adjust_loglik(larger = medium, fixed_pars = c("sigma[1]", "xi[1]"))
+#' tiny <- adjust_loglik(larger = small,
+#'                       fixed_pars = c("mu[1]", "sigma[1]", "xi[1]"))
+#'
+#' anova(large, medium, small, tiny)
+#' @export
+anova.chandwich <- function (object, object2, ...) {
+  if (missing(object)) {
+    stop("model one must be supplied, using object")
+  }
+  if (missing(object2)) {
+    stop("model two must be supplied, using object2")
+  }
+  # Extract the names of object and object2
+  model1 <- deparse(substitute(object))
+  model2 <- deparse(substitute(object2))
+  # Extract arguments supplied in ... and determine which are named
+  dotargs <- list(...)
+  named <- if (is.null(names(dotargs)))
+    rep_len(FALSE, length(dotargs))
+  else (names(dotargs) != "")
+  which_named <- which(named)
+  which_not_named <- which(!named)
+  # Named objects are intended for compare_models()
+  for_compare_models <- dotargs[named]
+  # Create list of model objects:  unnamed arguments may be model objects
+  model_list <- c(list(object, object2), dotargs[!named])
+  # Check for objects that do not have class "chandwich"
+  is_chand <- vapply(model_list, function(x) inherits(x, "chandwich"), NA)
+  if (any(!is_chand)) {
+    stop("The following are not 'chandwich' objects: ",
+         paste(names(model_list)[!is_chand], collapse = ", "))
+  }
+  extra_names <- as.list(substitute(list(...)))[-1][which_not_named]
+  extra_names <- sapply(extra_names, function(x) deparse(x))
+  model_names <- c(model1, model2, extra_names)
+  # Check for duplicate names
+  if (anyDuplicated(model_names)) {
+    stop("A model name has been supplied more than once")
+  }
+  # Order the models in order of the number of parameters
+  n_pars <- vapply(model_list, function(x) attr(x, "p_current"), 0)
+  # Check for models with the same number of parameters
+  if (anyDuplicated(n_pars)) {
+    stop("At least two models have the same number of parameters")
+  }
+  m_order <- order(n_pars, decreasing = TRUE)
+  model_list <- model_list[m_order]
+  n_pars <- n_pars[m_order]
+  n_models <- length(model_list)
+  # Do the testing
+  alrts <- p_value <- numeric(n_models - 1)
+  for (i in 2:n_models) {
+    larger <- model_list[[i - 1]]
+    smaller <- model_list[[i]]
+    res <- do.call(compare_models, c(list(larger = larger, smaller = smaller),
+                                     for_compare_models))
+    alrts[i - 1] <- res$alrts
+    p_value[i - 1] <- res$p_value
+  }
+  df <- -diff(n_pars)
+  my_table <- data.frame(n_pars, c(NA, df), c(NA, alrts), c(NA, p_value))
+  dimnames(my_table) <- list(model_names,
+                             c("Model.Df", "Df", "ALRTS", "Pr(>ALRTS)"))
+  structure(my_table, heading = c("Analysis of (Adjusted) Deviance Table\n"),
+            class = c("anova", "data.frame"))
 }

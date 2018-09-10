@@ -5,15 +5,16 @@
 \title{Comparison of nested models}
 \usage{
 compare_models(larger, smaller = NULL, approx = FALSE,
-  type = c("vertical", "cholesky", "spectral", "none"), fixed_pars = NULL,
-  fixed_at = rep_len(0, length(fixed_pars)), init = NULL, ...)
+  type = c("vertical", "cholesky", "spectral", "none"),
+  fixed_pars = NULL, fixed_at = rep_len(0, length(fixed_pars)),
+  init = NULL, ...)
 }
 \arguments{
 \item{larger}{An object of class \code{"chandwich"} returned by
-\code{adjust_loglik}.  The larger of the two models.}
+\code{\link{adjust_loglik}}.  The larger of the two models.}
 
 \item{smaller}{An object of class \code{"chandwich"} returned by
-  \code{adjust_loglik}.  The smaller of the two models.
+  \code{\link{adjust_loglik}}.  The smaller of the two models.
 
   If \code{smaller} is supplied then the arguments \code{fixed_pars} and
   \code{fixed_at} described below are ignored.}
@@ -21,6 +22,9 @@ compare_models(larger, smaller = NULL, approx = FALSE,
 \item{approx}{A logical scalar.  If \code{approx = TRUE} then the
   approximation detailed by equations (18)-(20) of Chandler and Bate (2007)
   is used.  This option is available only if \code{smaller} is supplied.
+  If \code{smaller} is not supplied then \code{approx = TRUE} is used,
+  with no warning.
+
   The approximation doesn't make sense if \code{type = "none"}.  If
   \code{type = "none"} and \code{approx = TRUE} then \code{approx} is
   set to \code{FALSE} with no warning.
@@ -75,8 +79,8 @@ An object of class "compmod", a list with components
  \item{approx}{the argument \code{approx}.}
 }
 \description{
-Compares nested models using the adjusted likelihood ratio statistic (ALRS)
-described in Section 3.5 of
+Compares nested models using the adjusted likelihood ratio test statistic
+(ALRTS) described in Section 3.5 of
 \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
 The nesting must result from the simple constraint that a subset of the
 parameters of the larger model is held fixed.
@@ -197,4 +201,6 @@ Chandler, R. E. and Bate, S. (2007). Inference for clustered
 
 \code{\link{conf_region}} for a confidence region for
   pairs of parameters.
+
+\code{\link{print.compmod}}.
 }

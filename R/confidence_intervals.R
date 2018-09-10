@@ -37,7 +37,8 @@
 #' @param mult A numeric vector of length 1 or the same length as
 #'   \code{which_pars}.
 #'   The search for the profile loglikelihood-based confidence limits is
-#'   conducted over the corresponding symmetric confidence intervals, extended
+#'   conducted over the corresponding symmetric confidence intervals
+#'   (based on approximate normal theory), extended
 #'   by a factor of the corresponding component of \code{mult}.
 #' @param num A numeric vector of length 1 or 2.  The numbers of values at which
 #'   to evaluate the profile loglikelihood either side of the MLE.
@@ -73,6 +74,7 @@
 #'   individual parameters.
 #' @seealso \code{\link{compare_models}} to compare nested models using an
 #'   (adjusted) likelihood ratio test.
+#' @seealso \code{\link{plot.confreg}}.
 #' @examples
 #' # -------------------------- GEV model, owtemps data -----------------------
 #' # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
@@ -279,6 +281,8 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
   eval_order2 <- c(rev(1:(mle_idx2 - 1)), mle_idx2:(2 * num[2] + 1))
   start_array <- array(dim = c(length(theta_start), leng1, leng2))
   start_array[, mle_idx1, mle_idx2] <- theta_start
+  message("Waiting for profiling to be done...")
+  utils::flush.console()
   for (i in eval_order1) {
     i_nbr <- max(i - 1, 1):(i + 1)
     i_nbr <- i_nbr[i_nbr <= leng1]
@@ -332,6 +336,8 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #'   \code{attr(object, "fixed_pars")}.  \code{which_pars} must not contain
 #'   all of the unfixed parameters, i.e. there is no point in profiling over
 #'   all the unfixed parameters.
+#'
+#'   If missing, all parameters are included.
 #' @param init A numeric vector of initial estimates of the values of the
 #'   parameters that are not fixed and are not in \code{which_pars}.
 #'   Should have length \code{attr(object, "p_current") - length(which_pars)}.
@@ -342,7 +348,8 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #' @param mult A numeric vector of length 1 or the same length as
 #'   \code{which_pars}.
 #'   The search for the profile loglikelihood-based confidence limits is
-#'   conducted over the corresponding symmetric confidence intervals, extended
+#'   conducted over the corresponding symmetric confidence intervals
+#'   (based on approximate normal theory), extended
 #'   by a factor of the corresponding component of \code{mult}.
 #' @param num A numeric scalar.  The number of values at which to evaluate the
 #'   profile loglikelihood either side of the MLE.
@@ -388,6 +395,7 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #'   a pair of parameters.
 #' @seealso \code{\link{compare_models}} to compare nested models using an
 #'   (adjusted) likelihood ratio test.
+#' @seealso \code{\link{plot.confint}}, \code{\link{print.confint}}.
 #' @examples
 #' # ------------------------- Binomial model, rats data ----------------------
 #'
@@ -557,6 +565,8 @@ conf_intervals <- function(object, which_pars = NULL, init = NULL, conf = 95,
   prof_loglik_vals[num + 1, ] <- rep(max_loglik, n_which_pars)
   # 100% confidence interval: where the profile loglikelihood lies above cutoff
   cutoff <- max_loglik - stats::qchisq(conf  / 100, 1) / 2
+  message("Waiting for profiling to be done...")
+  utils::flush.console()
   for (i in 1:length(which_pars)) {
     # MLE not including parameter being profiled and fixed parameters
     sol <- res_mle[-c(which_pars[i], fixed_pars)]
@@ -782,4 +792,97 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
   to_return <- -temp$value
   attr(to_return, "free_pars") <- temp$par
   return(to_return)
+}
+
+#' Confidence intervals for model parameters
+#'
+#' \code{confint} method for objects of class \code{"chandwich"}.
+#' Computes confidence intervals for one or more model parameters based
+#' on an object returned from \code{\link{adjust_loglik}}.
+#'
+#' @param object An object of class \code{"chandwich"}, returned by
+#'   \code{\link{adjust_loglik}}.
+#' @param parm A vector specifying the (unfixed) parameters for which
+#'   confidence intervals are required.
+#'   If missing, all parameters are included.
+#'
+#'   Can be either a numeric vector,
+#'   specifying indices of the components of the \strong{full} parameter
+#'   vector, or a character vector of parameter names, which must be a subset
+#'   of those supplied in \code{par_names} in the call to
+#'   \code{\link{adjust_loglik}} that produced \code{object}.
+#'
+#'   \code{which_pars} must not have any parameters in common with
+#'   \code{attr(object, "fixed_pars")}.  \code{which_pars} must not contain
+#'   all of the unfixed parameters, i.e. there is no point in profiling over
+#'   all the unfixed parameters.
+#' @param level The confidence level required.
+#' @param type A character scalar.  The argument \code{type} to the function
+#'   returned by \code{\link{adjust_loglik}}, that is, the type of adjustment
+#'   made to the independence loglikelihood function.
+#' @param ... Further arguments to be passed to \code{\link{conf_intervals}}.
+#' @details For details see the documentation for the function
+#'   \code{\link{conf_intervals}}, on which \code{confint.chandwich} is based.
+#' @return A matrix with columns giving lower and upper confidence limits for
+#'   each parameter. These will be labelled as (1 - level)/2 and
+#'   1 - (1 - level)/2 in % (by default 2.5% and 97.5%).
+#'   The row names are the names of the model parameters,
+#'   if these are available.
+#' @seealso \code{\link{conf_intervals}}.
+#' @seealso \code{\link{conf_region}} for a confidence region for
+#'   pairs of parameters.
+#' @seealso \code{\link{compare_models}} for an adjusted likelihood ratio test
+#'   of two models.
+#' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
+#'   loglikelihood function.
+#' @examples
+#' # -------------------------- GEV model, owtemps data -----------------------
+#' # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
+#'
+#' gev_loglik <- function(pars, data) {
+#'   o_pars <- pars[c(1, 3, 5)] + pars[c(2, 4, 6)]
+#'   w_pars <- pars[c(1, 3, 5)] - pars[c(2, 4, 6)]
+#'   if (o_pars[2] <= 0 | w_pars[2] <= 0) return(-Inf)
+#'   o_data <- data[, "Oxford"]
+#'   w_data <- data[, "Worthing"]
+#'   check <- 1 + o_pars[3] * (o_data - o_pars[1]) / o_pars[2]
+#'   if (any(check <= 0)) return(-Inf)
+#'   check <- 1 + w_pars[3] * (w_data - w_pars[1]) / w_pars[2]
+#'   if (any(check <= 0)) return(-Inf)
+#'   o_loglik <- log_gev(o_data, o_pars[1], o_pars[2], o_pars[3])
+#'   w_loglik <- log_gev(w_data, w_pars[1], w_pars[2], w_pars[3])
+#'   return(o_loglik + w_loglik)
+#' }
+#'
+#' # Initial estimates (method of moments for the Gumbel case)
+#' sigma <- as.numeric(sqrt(6 * diag(var(owtemps))) / pi)
+#' mu <- as.numeric(colMeans(owtemps) - 0.57722 * sigma)
+#' init <- c(mean(mu), -diff(mu) / 2, mean(sigma), -diff(sigma) / 2, 0, 0)
+#'
+#' # Log-likelihood adjustment of the full model
+#' par_names <- c("mu[0]", "mu[1]", "sigma[0]", "sigma[1]", "xi[0]", "xi[1]")
+#' large <- adjust_loglik(gev_loglik, data = owtemps, init = init,
+#'                        par_names = par_names)
+#' confint(large)
+#' @export
+confint.chandwich <- function (object, parm, level = 0.95,
+                               type = c("vertical", "cholesky", "spectral",
+                                        "none"), ...) {
+  if (!inherits(object, "chandwich")) {
+    stop("use only with \"chandwich\" objects")
+  }
+  type <- match.arg(type)
+  if (missing(parm)) {
+    temp <- conf_intervals(object = object, conf = 100 * level, type = type,
+                           ...)
+  } else {
+    temp <- conf_intervals(object = object, which_pars = parm,
+                           conf = 100 * level, type = type, ...)
+  }
+  temp <- temp$prof_CI
+  a <- (1 - level) / 2
+  a <- c(a, 1 - a)
+  pct <- paste(round(100 * a, 1), "%")
+  colnames(temp) <- pct
+  return(temp)
 }

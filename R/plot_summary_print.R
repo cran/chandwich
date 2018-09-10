@@ -151,7 +151,7 @@ plot.chandwich <- function(x, y, type = 1, legend = length(type) > 1,
 #' \code{summary} method for class "chandwich"
 #'
 #' @param object an object of class "chandwich", a result of a call to
-#'   \code{adjust_loglik}.
+#'   \code{\link{adjust_loglik}}.
 #' @param digits An integer. Used for number formatting with
 #'   \code{\link{signif}}.
 #' @param ... Additional optional arguments. At present no optional
@@ -181,7 +181,70 @@ summary.chandwich <- function(object,
   if (is.null(attr(object, "par_names"))) {
     rownames(res) <- 1:length(mle)
   }
+  class(res) <- "summary.chandwich"
   return(res)
+}
+
+# ======================== print.summary.chandwich ============================
+
+#' Print method for objects of class "summary.chandwich"
+#'
+#' \code{print} method for an object \code{object} of class "summary.chandwich".
+#'
+#' @param x An object of class "summary.chandwich", a result of a call to
+#'   \code{\link{summary.chandwich}}.
+#' @param ... Additional arguments passed on to \code{print}.
+#' @return Prints a numeric matrix with 3 columns and the number of rows
+#'   equal to the number of parameters in the current model, i.e.
+#'   \code{attr(object, "p_current")}.
+#'   The columns contain: the maximum likelihood estimates (MLE), unadjusted
+#'   standard errors (SE) and adjusted standard errors (adjSE).
+#' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
+#'   loglikelihood.
+#' @seealso \code{\link{summary.chandwich}} for a diagnostic plot.
+#' @section Examples:
+#' See the examples in \code{\link{adjust_loglik}}.
+#' @export
+print.summary.chandwich <- function(x, ...) {
+  if (!inherits(x, "summary.chandwich")) {
+    stop("use only with \"summary.chandwich\" objects")
+  }
+  class(x) <- "matrix"
+  print(x, ...)
+  invisible(x)
+}
+
+# ============================== print.chandwich ==============================
+
+#' Print method for objects of class "chandwich"
+#'
+#' \code{print} method for class "chandwich".
+#'
+#' @param x an object of class "chandwich", a result of a call to
+#'   \code{\link{adjust_loglik}}.
+#' @param ... Additional optional arguments. At present no optional
+#'   arguments are used.
+#' @details Just prints the original call to \code{\link{adjust_loglik}}
+#'   and a character vector giving the names of the attributes
+#'   (produced using \code{ls(attributes(x))}) to the function returned
+#'   from \code{\link{adjust_loglik}}.
+#'   To view an individual attribute use \code{attr(x, "name")}
+#'   or \code{attributes(x)$name}.
+#' @return The argument \code{x}, invisibly, as for all \code{\link{print}}
+#'   methods.
+#' @seealso \code{\link{summary.chandwich}}: \code{summary} method for
+#'   class "chandwich".
+#' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
+#'   loglikelihood.
+#' @export
+print.chandwich <- function(x, ...) {
+  if (!inherits(x, "chandwich")) {
+    stop("use only with \"chandwich\" objects")
+  }
+  cat("\n", "Call:", paste(deparse(attr(x, "call"))), "\n", "\n")
+  cat("Attributes, access using attr(., \"name\") or attributes(.)$name", "\n")
+  print(ls(attributes(x)))
+  return(invisible(x))
 }
 
 # ============================== plot.confreg =================================

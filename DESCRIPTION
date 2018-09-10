@@ -1,7 +1,7 @@
 Package: chandwich
 Title: Chandler-Bate Sandwich Loglikelihood Adjustment
-Version: 1.0.0
-Date: 2018-03-05
+Version: 1.1.0
+Date: 2018-09-10
 Authors@R: c(
     person(c("Paul", "J."), "Northrop", email = "p.northrop@ucl.ac.uk", 
       role = c("aut", "cre", "cph")),
@@ -16,20 +16,22 @@ Description: Performs adjustments of a user-supplied independence loglikelihood
     misspecification.  Functions for profiling the adjusted loglikelihoods are 
     also provided, as are functions for calculating and plotting confidence 
     intervals, for single model parameters, and confidence regions, for pairs 
-    of model parameters.
-Imports: graphics, methods, numDeriv, stats
+    of model parameters.  Nested models can be compared using an adjusted 
+    likelihood ratio test.
+Imports: graphics, methods, numDeriv, stats, utils
 License: GPL (>= 2)
 LazyData: TRUE
+Encoding: UTF-8
 Depends: R (>= 3.3.0)
-RoxygenNote: 6.0.1
-Suggests: knitr, rmarkdown, testthat
+RoxygenNote: 6.1.0
+Suggests: knitr, rmarkdown, sandwich, testthat
 VignetteBuilder: knitr
 URL: http://github.com/paulnorthrop/chandwich
 BugReports: http://github.com/paulnorthrop/chandwich/issues
 NeedsCompilation: no
-Packaged: 2018-03-05 23:11:07 UTC; paul
+Packaged: 2018-09-10 08:59:28 UTC; paul
 Author: Paul J. Northrop [aut, cre, cph],
   Richard Chandler [aut, cph]
 Maintainer: Paul J. Northrop <p.northrop@ucl.ac.uk>
 Repository: CRAN
-Date/Publication: 2018-03-06 19:03:43 UTC
+Date/Publication: 2018-09-10 09:20:02 UTC

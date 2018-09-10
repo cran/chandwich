@@ -86,6 +86,28 @@
 #'   first argument.  Returns a \code{p} by \code{p} numeric matrix equal to
 #'   the Hessian of \code{loglik}, i.e. the matrix of second derivatives of
 #'   the function \code{loglik}.
+#'
+#'   Supplying both \code{V} and \code{alg_deriv} or both \code{H} and
+#'   \code{alg_hess} will produce an error.
+#' @param mle A numeric vector.  Can only be used if \code{fixed_pars = NULL}.
+#'   Provides the maximum likelihood estimate of the model parameters,
+#'   that is, the value of the parameter vector
+#'   at which the independence loglikelihood \code{loglik} is maximized.
+#'   Must have length equal to the number of parameters in the
+#'   \strong{full} model.  If \code{mle} is supplied then \code{p} is set
+#'   to \code{length(mle)}, provided that this is consistent with the the
+#'   value given by \code{p} or implied by \code{length(par_names)}.
+#'   If \code{mle} is supplied then it overrides \code{init}.
+#' @param H,V p by p numeric matrices.  Only used if \code{mle} is supplied.
+#'   Provide estimates of the Hessian of the
+#'   independence loglikelihood (H) and the variance of the vector
+#'   of cluster-specific contributions to the score vector (first
+#'   derivatives with respect to the parameters) of the independence
+#'   loglikelihood, each evaluated at the MLE \code{mle}.  See the
+#'   \emph{Introducing chandwich} vignette and/or Chandler and Bate (2007).
+#'
+#'   Supplying both \code{V} and \code{alg_deriv} or both \code{H} and
+#'   \code{alg_hess} will produce an error.
 #' @details Three adjustments to the independence loglikelihood described in
 #'   Chandler and Bate (2007) are available.  The vertical adjustment is
 #'   described in Section 6 and two horizontal adjustments are described
@@ -124,7 +146,10 @@
 #'     of free parameters under the current model (\code{mle}) and all
 #'     parameters in the full model, including any parameters with fixed
 #'     values (\code{res_MLE}).}
-#'   \item{SE, adjSE}{The unadjusted and adjusted standard errors, respectively.}
+#'   \item{SE, adjSE}{The unadjusted and adjusted estimated standard errors,
+#'     of the free parameters, respectively.}
+#'   \item{VC, adjVC}{The unadjusted and adjusted estimated
+#'     variance-covariance matrix of the free parameters, respectively.}
 #'   \item{HI, HA}{The Hessians of the independence and adjusted loglikelihood,
 #'     respectively.}
 #'   \item{C_cholesky, C_spectral}{The matrix C in equation (14) of Chandler and
@@ -148,6 +173,9 @@
 #'     \code{par_names} if this was supplied.}
 #'   If \code{alg_deriv} and/or \code{alg_hess} were supplied then these are
 #'   returned as further attributes.
+#'
+#'   To view an individual attribute use \code{attr(x, "name")}
+#'   or \code{attributes(x)$name}.
 #' @references Chandler, R. E. and Bate, S. (2007). Inference for clustered
 #'   data using the independence loglikelihood. \emph{Biometrika},
 #'   \strong{94}(1), 167-183. \url{http://dx.doi.org/10.1093/biomet/asm015}
@@ -209,7 +237,7 @@
 #' # Rows 1, 3 and 4 of Table 2 of Chandler and Bate (2007)
 #' t(summary(large))
 #'
-#' # Log-likelihood adjustment of some smaller models: xi[1] = 0 etc
+#' # Loglikelihood adjustment of some smaller models: xi[1] = 0 etc
 #'
 #' # Starting from a larger model
 #' medium <- adjust_loglik(larger = large, fixed_pars = "xi[1]")
@@ -261,12 +289,44 @@
 #' pois_quad <- adjust_loglik(pois_glm_loglik, y = y, x = x, p = 3,
 #'                            alg_deriv = pois_alg_deriv, alg_hess = pois_alg_hess)
 #' summary(pois_quad)
+#'
+#' got_sandwich <- requireNamespace("sandwich", quietly = TRUE)
+#' if (got_sandwich) {
+#'   # Providing MLE, H and V
+#'   # H and V calculated using bread() and meat() from sandwich package
+#'   n_obs <- stats::nobs(fm_pois)
+#'   pois_quad <- adjust_loglik(pois_glm_loglik, y = y, x = x, p = 3,
+#'                              mle = fm_pois$coefficients,
+#'                              H = -solve(sandwich::bread(fm_pois) / n_obs),
+#'                              V = sandwich::meat(fm_pois) * n_obs)
+#' }
 #' @export
 adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
-                          init = NULL, par_names = NULL,
-                          fixed_pars = NULL, fixed_at = 0, name = NULL,
-                          larger = NULL, alg_deriv = NULL, alg_hess = NULL) {
-  #
+                          init = NULL, par_names = NULL, fixed_pars = NULL,
+                          fixed_at = 0, name = NULL, larger = NULL,
+                          alg_deriv = NULL, alg_hess = NULL, mle = NULL,
+                          H = NULL, V = NULL) {
+  # If mle has been supplied then replace init by mle
+  # (and later on don't search for the MLE because we have it already)
+  if (!is.null(mle)) {
+    if (!is.null(fixed_pars)) {
+      stop("'mle' cannot be supplied when 'fixed_pars' is also supplied")
+    } else {
+      init <- mle
+    }
+  }
+  if (!is.null(V) & is.null(mle)) {
+    stop("'V' can only be supplied if 'mle' is also supplied")
+  }
+  if (!is.null(H) & is.null(mle)) {
+    stop("'H' can only be supplied if 'mle' is also supplied")
+  }
+  if (!is.null(V) & !is.null(alg_deriv)) {
+    stop("Only one of 'V' and 'alg_deriv' can be supplied")
+  }
+  if (!is.null(H) & !is.null(alg_hess)) {
+    stop("Only one of 'H' and 'alg_hess' can be supplied")
+  }
   # Setup and checks -----------------------------------------------------------
   #
   if (is.null(loglik) & is.null(larger)) {
@@ -351,6 +411,12 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
         temp <- fixed_pars
         fixed_pars <- which(full_par_names %in% fixed_pars)
         names(fixed_pars) <- temp
+      } else {
+        # If fixed_pars is numeric then infer the names of the fixed
+        # parameters, if these are available
+        if (!is.null(full_par_names)) {
+          names(fixed_pars) <- full_par_names[fixed_pars]
+        }
       }
       init <- init[-fixed_pars]
       par_names <- par_names[-fixed_pars]
@@ -404,7 +470,7 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   user_args <- list(...)
   optim_cond <- names(user_args) %in% methods::formalArgs(stats::optim)
   optim_args <- user_args[optim_cond]
-  # The remaining arguments are to be passed loglik
+  # The remaining arguments are to be passed to loglik
   # Only extract these if they were not extracted from larger earlier
   if (!got_loglik_args) {
     loglik_args <- user_args[!optim_cond]
@@ -513,18 +579,29 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   for_optim <- c(list(par = init, fn = neg_loglik, hessian = TRUE), optim_args)
   #
   # Find the MLE and Hessian of the (negated) loglikelihood at the MLE -------
-  #
-  temp <- do.call(stats::optim, for_optim)
+  # If mle has been supplied then just use the MLE and calculate the values
+  # of the independence loglikelihood and its Hessian at the MLE
+  if (is.null(mle)) {
+    temp <- do.call(stats::optim, for_optim)
+    mle <- temp$par
+    max_loglik <- -temp$value
+  } else {
+    max_loglik <- -neg_loglik(mle)
+    temp <- list()
+    if (is.null(H)) {
+      temp$hessian <- stats::optimHess(mle, neg_loglik)
+    } else {
+      temp$hessian <- -H
+    }
+  }
   # Extract the MLE and the Hessian of independence loglikelihood at the MLE
   # Note the negation to change from Hessian of negated loglikelihood
   # to Hessian HI of loglikelihood
-  mle <- temp$par
   if (!is.null(fixed_pars)) {
     res_mle <- numeric(p)
     res_mle[fixed_pars] <- fixed_at
     res_mle[free_pars] <- mle
   }
-  max_loglik <- -temp$value
   if (is.null(alg_hess)) {
     HI <- -temp$hessian
   } else {
@@ -541,7 +618,10 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   #
   # Find the estimated covariance matrix of the score vector ------------------
   #
-  if (is.null(alg_deriv)) {
+  # If necessary (if V isn't supplied) then first calculate U.
+  # If neither alg_deriv or V are supplied then use numerical derivatives.
+  # If alg_deriv is supplied (V isn't) then aggregate alg_deriv over clusters.
+  if (is.null(alg_deriv) & is.null(V)) {
     # Function to aggregate the loglikelihood contributions within each cluster
     # [, 2] ensures that the correct *vector* is returned
     if (is.null(fixed_pars)) {
@@ -563,7 +643,7 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
     #
     for_jacobian <- list(func = clus_loglik, x = mle, cluster = cluster)
     U <- do.call(numDeriv::jacobian, for_jacobian)
-  } else {
+  } else if (!is.null(alg_deriv)) {
     if (is.null(fixed_pars)) {
       U <- do.call(alg_deriv, c(list(mle), loglik_args))
       U <- as.matrix(stats::aggregate(U, list(cluster), sum)[, 2:(p + 1)])
@@ -578,12 +658,18 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   # [chol2inv(chol(X)) inverts X via its Cholesky decomposition]
   chol_minus_HI <- chol(-HI)
   HIinv <- -chol2inv(chol_minus_HI)
+  VC <- -HIinv
   SE <- sqrt(diag(-HIinv))
   # Adjusted Hessian and standard errors
-  UHIinv <- U %*% HIinv
-  HAinv <- -t(UHIinv) %*% UHIinv
+  if (is.null(V)) {
+    UHIinv <- U %*% HIinv
+    HAinv <- -t(UHIinv) %*% UHIinv
+  } else {
+    HAinv <- -HIinv %*% V %*% HIinv
+  }
   chol_minus_HAinv <- chol(-HAinv)
   HA <- -chol2inv(chol_minus_HAinv)
+  adjVC <- -HAinv
   adjSE <- sqrt(diag(-HAinv))
   # The following alternatives give the same answer ...
   # Estimate covariance of score using equation (7) of Chandler and Bate (2007)
@@ -691,8 +777,12 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   attr(adjust_loglik_fn, "MLE") <- mle
   names(SE) <- par_names
   names(adjSE) <- par_names
+  dimnames(VC) <- list(par_names, par_names)
+  dimnames(adjVC) <- list(par_names, par_names)
   attr(adjust_loglik_fn, "SE") <- SE
   attr(adjust_loglik_fn, "adjSE") <- adjSE
+  attr(adjust_loglik_fn, "VC") <- VC
+  attr(adjust_loglik_fn, "adjVC") <- adjVC
   dimnames(HI) <- list(par_names, par_names)
   dimnames(HA) <- list(par_names, par_names)
   dimnames(C_cholesky) <- list(par_names, par_names)
@@ -708,6 +798,7 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   attr(adjust_loglik_fn, "max_loglik") <- max_loglik
   attr(adjust_loglik_fn, "loglik_args") <- loglik_args
   attr(adjust_loglik_fn, "name") <- name
+  attr(adjust_loglik_fn, "call") <- match.call()
   class(adjust_loglik_fn) <- "chandwich"
   return(adjust_loglik_fn)
 }

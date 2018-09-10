@@ -22,7 +22,9 @@ conf_intervals(object, which_pars = NULL, init = NULL, conf = 95,
   \code{which_pars} must not have any parameters in common with
   \code{attr(object, "fixed_pars")}.  \code{which_pars} must not contain
   all of the unfixed parameters, i.e. there is no point in profiling over
-  all the unfixed parameters.}
+  all the unfixed parameters.
+
+  If missing, all parameters are included.}
 
 \item{init}{A numeric vector of initial estimates of the values of the
 parameters that are not fixed and are not in \code{which_pars}.
@@ -36,7 +38,8 @@ intervals.}
 \item{mult}{A numeric vector of length 1 or the same length as
 \code{which_pars}.
 The search for the profile loglikelihood-based confidence limits is
-conducted over the corresponding symmetric confidence intervals, extended
+conducted over the corresponding symmetric confidence intervals
+(based on approximate normal theory), extended
 by a factor of the corresponding component of \code{mult}.}
 
 \item{num}{A numeric scalar.  The number of values at which to evaluate the
@@ -180,4 +183,6 @@ conf_intervals(pois_quad)
 
 \code{\link{compare_models}} to compare nested models using an
   (adjusted) likelihood ratio test.
+
+\code{\link{plot.confint}}, \code{\link{print.confint}}.
 }

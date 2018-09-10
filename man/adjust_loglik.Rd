@@ -4,9 +4,10 @@
 \alias{adjust_loglik}
 \title{Loglikelihood adjustment using the sandwich estimator}
 \usage{
-adjust_loglik(loglik = NULL, ..., cluster = NULL, p = NULL, init = NULL,
-  par_names = NULL, fixed_pars = NULL, fixed_at = 0, name = NULL,
-  larger = NULL, alg_deriv = NULL, alg_hess = NULL)
+adjust_loglik(loglik = NULL, ..., cluster = NULL, p = NULL,
+  init = NULL, par_names = NULL, fixed_pars = NULL, fixed_at = 0,
+  name = NULL, larger = NULL, alg_deriv = NULL, alg_hess = NULL,
+  mle = NULL, H = NULL, V = NULL)
 }
 \arguments{
 \item{loglik}{A named function.  Returns a vector of the
@@ -93,9 +94,33 @@ matrix. Column i contains the derivatives of each of the loglikelihood
 contributions in \code{loglik} with respect to model parameter i.}
 
 \item{alg_hess}{A function with the vector of model parameter(s) as its
-first argument.  Returns a \code{p} by \code{p} numeric matrix equal to
-the Hessian of \code{loglik}, i.e. the matrix of second derivatives of
-the function \code{loglik}.}
+  first argument.  Returns a \code{p} by \code{p} numeric matrix equal to
+  the Hessian of \code{loglik}, i.e. the matrix of second derivatives of
+  the function \code{loglik}.
+
+  Supplying both \code{V} and \code{alg_deriv} or both \code{H} and
+  \code{alg_hess} will produce an error.}
+
+\item{mle}{A numeric vector.  Can only be used if \code{fixed_pars = NULL}.
+Provides the maximum likelihood estimate of the model parameters,
+that is, the value of the parameter vector
+at which the independence loglikelihood \code{loglik} is maximized.
+Must have length equal to the number of parameters in the
+\strong{full} model.  If \code{mle} is supplied then \code{p} is set
+to \code{length(mle)}, provided that this is consistent with the the
+value given by \code{p} or implied by \code{length(par_names)}.
+If \code{mle} is supplied then it overrides \code{init}.}
+
+\item{H, V}{p by p numeric matrices.  Only used if \code{mle} is supplied.
+  Provide estimates of the Hessian of the
+  independence loglikelihood (H) and the variance of the vector
+  of cluster-specific contributions to the score vector (first
+  derivatives with respect to the parameters) of the independence
+  loglikelihood, each evaluated at the MLE \code{mle}.  See the
+  \emph{Introducing chandwich} vignette and/or Chandler and Bate (2007).
+
+  Supplying both \code{V} and \code{alg_deriv} or both \code{H} and
+  \code{alg_hess} will produce an error.}
 }
 \value{
 A function of class \code{"chandwich"} to evaluate an adjusted
@@ -125,7 +150,10 @@ A function of class \code{"chandwich"} to evaluate an adjusted
     of free parameters under the current model (\code{mle}) and all
     parameters in the full model, including any parameters with fixed
     values (\code{res_MLE}).}
-  \item{SE, adjSE}{The unadjusted and adjusted standard errors, respectively.}
+  \item{SE, adjSE}{The unadjusted and adjusted estimated standard errors,
+    of the free parameters, respectively.}
+  \item{VC, adjVC}{The unadjusted and adjusted estimated
+    variance-covariance matrix of the free parameters, respectively.}
   \item{HI, HA}{The Hessians of the independence and adjusted loglikelihood,
     respectively.}
   \item{C_cholesky, C_spectral}{The matrix C in equation (14) of Chandler and
@@ -149,6 +177,9 @@ A function of class \code{"chandwich"} to evaluate an adjusted
     \code{par_names} if this was supplied.}
   If \code{alg_deriv} and/or \code{alg_hess} were supplied then these are
   returned as further attributes.
+
+  To view an individual attribute use \code{attr(x, "name")}
+  or \code{attributes(x)$name}.
 }
 \description{
 Performs adjustments of a user-supplied independence loglikelihood for the
@@ -220,7 +251,7 @@ large <- adjust_loglik(gev_loglik, data = owtemps, init = init,
 # Rows 1, 3 and 4 of Table 2 of Chandler and Bate (2007)
 t(summary(large))
 
-# Log-likelihood adjustment of some smaller models: xi[1] = 0 etc
+# Loglikelihood adjustment of some smaller models: xi[1] = 0 etc
 
 # Starting from a larger model
 medium <- adjust_loglik(larger = large, fixed_pars = "xi[1]")
@@ -272,6 +303,17 @@ pois_alg_hess <- function(pars, y, x) {
 pois_quad <- adjust_loglik(pois_glm_loglik, y = y, x = x, p = 3,
                            alg_deriv = pois_alg_deriv, alg_hess = pois_alg_hess)
 summary(pois_quad)
+
+got_sandwich <- requireNamespace("sandwich", quietly = TRUE)
+if (got_sandwich) {
+  # Providing MLE, H and V
+  # H and V calculated using bread() and meat() from sandwich package
+  n_obs <- stats::nobs(fm_pois)
+  pois_quad <- adjust_loglik(pois_glm_loglik, y = y, x = x, p = 3,
+                             mle = fm_pois$coefficients,
+                             H = -solve(sandwich::bread(fm_pois) / n_obs),
+                             V = sandwich::meat(fm_pois) * n_obs)
+}
 }
 \references{
 Chandler, R. E. and Bate, S. (2007). Inference for clustered

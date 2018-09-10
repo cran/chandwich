@@ -4,9 +4,9 @@
 \alias{conf_region}
 \title{Two-dimensional confidence regions}
 \usage{
-conf_region(object, which_pars = NULL, range1 = c(NA, NA), range2 = c(NA,
-  NA), conf = 95, mult = 2, num = c(10, 10), type = c("vertical",
-  "cholesky", "spectral", "none"), ...)
+conf_region(object, which_pars = NULL, range1 = c(NA, NA),
+  range2 = c(NA, NA), conf = 95, mult = 2, num = c(10, 10),
+  type = c("vertical", "cholesky", "spectral", "none"), ...)
 }
 \arguments{
 \item{object}{An object of class \code{"chandwich"} returned by
@@ -44,7 +44,8 @@ the largest confidence region of interest.}
 \item{mult}{A numeric vector of length 1 or the same length as
 \code{which_pars}.
 The search for the profile loglikelihood-based confidence limits is
-conducted over the corresponding symmetric confidence intervals, extended
+conducted over the corresponding symmetric confidence intervals
+(based on approximate normal theory), extended
 by a factor of the corresponding component of \code{mult}.}
 
 \item{num}{A numeric vector of length 1 or 2.  The numbers of values at which
@@ -171,4 +172,6 @@ plot(pois_none, pois_vertical, conf = c(50, 75, 95, 99), col = 2:1, lwd = 2,
 
 \code{\link{compare_models}} to compare nested models using an
   (adjusted) likelihood ratio test.
+
+\code{\link{plot.confreg}}.
 }

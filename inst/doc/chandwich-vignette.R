@@ -22,6 +22,7 @@ plot(rat_res, type = 1:4, legend_pos = "bottom", lwd = 2, col = 1:4,
 # 95% confidence intervals, unadjusted and vertically adjusted
 conf_intervals(rat_res, type = "none")
 conf_intervals(rat_res)
+confint(rat_res)
 
 ## ------------------------------------------------------------------------
 gev_loglik <- function(pars, data) {
@@ -72,7 +73,12 @@ compare_models(large, medium, approx = TRUE)
 
 ## ------------------------------------------------------------------------
 compare_models(large, fixed_pars = "xi[1]")
-compare_models(large, fixed_pars = "xi[1]", approx = TRUE)
+
+## ------------------------------------------------------------------------
+small <- adjust_loglik(larger = large, fixed_pars = c("sigma[1]", "xi[1]"))
+tiny <- adjust_loglik(larger = large, fixed_pars = c("mu[1]", "sigma[1]", "xi[1]"))
+anova(large, medium, small, tiny)
+anova(large, medium, small, tiny, approx = TRUE)
 
 ## ------------------------------------------------------------------------
 set.seed(123)
