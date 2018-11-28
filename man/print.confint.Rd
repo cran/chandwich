@@ -12,14 +12,14 @@
 \code{\link{conf_intervals}}.}
 
 \item{digits}{An integer. The argument \code{digits} to
-\code{\link{print.default}}.}
+\code{\link[base]{print.default}}.}
 
 \item{...}{Additional optional arguments. At present no optional
 arguments are used.}
 }
 \value{
-The argument \code{x}, invisibly, as for all \code{\link{print}}
-  methods.
+The argument \code{x}, invisibly, as for all
+  \code{\link[base]{print}} methods.
 }
 \description{
 \code{print} method for class "confint".

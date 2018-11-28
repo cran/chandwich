@@ -238,6 +238,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
     if (!is.null(attr(larger, "fixed_pars"))) {
       pars <- pars[-attr(larger, "fixed_pars")]
     }
+    names(pars) <- attr(larger, "par_names")
     if (approx) {
       max_loglik_smaller <- do.call(larger, list(pars, type = type))
       HA <- attr(larger, "HA")
@@ -346,6 +347,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
     if (!is.null(attr(larger, "fixed_pars"))) {
       pars <- pars[-attr(larger, "fixed_pars")]
     }
+    names(pars) <- attr(larger, "par_names")
     loglik_vals <- do.call(larger, list(pars, type = type))
     return(-loglik_vals)
   }

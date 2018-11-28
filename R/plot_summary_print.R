@@ -153,7 +153,7 @@ plot.chandwich <- function(x, y, type = 1, legend = length(type) > 1,
 #' @param object an object of class "chandwich", a result of a call to
 #'   \code{\link{adjust_loglik}}.
 #' @param digits An integer. Used for number formatting with
-#'   \code{\link{signif}}.
+#'   \code{\link[base:Round]{signif}}.
 #' @param ... Additional optional arguments. At present no optional
 #'   arguments are used.
 #' @return Returns a numeric matrix with 3 columns and the number of rows
@@ -228,10 +228,10 @@ print.summary.chandwich <- function(x, ...) {
 #'   and a character vector giving the names of the attributes
 #'   (produced using \code{ls(attributes(x))}) to the function returned
 #'   from \code{\link{adjust_loglik}}.
-#'   To view an individual attribute use \code{attr(x, "name")}
-#'   or \code{attributes(x)$name}.
-#' @return The argument \code{x}, invisibly, as for all \code{\link{print}}
-#'   methods.
+#'   To view an individual attribute called \code{att_name} use
+#'   \code{attr(x, "att_name")} or \code{attributes(x)$att_name}.
+#' @return The argument \code{x}, invisibly, as for all
+#'   \code{\link[base]{print}} methods.
 #' @seealso \code{\link{summary.chandwich}}: \code{summary} method for
 #'   class "chandwich".
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
@@ -336,10 +336,18 @@ plot.confreg <- function(x, y = NULL, y2 = NULL, y3 = NULL, conf = 95,
   user_args <- user_args[!l_cond | lines_cond]
   # If xlab or ylab are not supplied then use names(x$which_pars), if present
   if (is.null(user_args$xlab)) {
-    user_args$xlab <- parse(text = names(x$which_pars)[1])
+    if (is.null(names(x$which_pars))) {
+      user_args$xlab <- paste("parameter", x$which_pars[1])
+    } else {
+      user_args$xlab <- parse(text = names(x$which_pars)[1])
+    }
   }
   if (is.null(user_args$ylab)) {
-    user_args$ylab <- parse(text = names(x$which_pars)[2])
+    if (is.null(names(x$which_pars))) {
+      user_args$ylab <- paste("parameter", x$which_pars[2])
+    } else {
+      user_args$ylab <- parse(text = names(x$which_pars)[2])
+    }
   }
   # If labels is not supplied then set it to confidence level
   if (is.null(user_args$labels)) {
@@ -632,15 +640,15 @@ plot.confint <- function(x, y = NULL, y2 = NULL, y3 = NULL,
 #' @param x an object of class "confint", a result of a call to
 #'   \code{\link{conf_intervals}}.
 #' @param digits An integer. The argument \code{digits} to
-#'   \code{\link{print.default}}.
+#'   \code{\link[base]{print.default}}.
 #' @param ... Additional optional arguments. At present no optional
 #'   arguments are used.
 #' @details Prints the name of the model, details of any fixed parameters,
 #'   the confidence level of the interval(s) and whether or not
 #'   the loglikelihood has been adjusted, and symmetric and (profile) likelihood
 #'   based intervals.
-#' @return The argument \code{x}, invisibly, as for all \code{\link{print}}
-#'   methods.
+#' @return The argument \code{x}, invisibly, as for all
+#'   \code{\link[base]{print}} methods.
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
 #'   loglikelihood function.
 #' @seealso \code{\link{conf_intervals}} for confidence intervals for
@@ -706,15 +714,15 @@ print.confint <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
 #' @param x an object of class "compmod", a result of a call to
 #'   \code{\link{compare_models}}.
 #' @param digits An integer. The argument \code{digits} to
-#'   \code{\link{signif}}.
+#'   \code{\link[base:Round]{signif}}.
 #' @param ... Additional optional arguments. At present no optional
 #'   arguments are used.
 #' @details Prints the name of the model, the null (H0) and alternative
 #' hypotheses (HA), the test statistic, degrees of freedom and the p-value.
 #' If the test is based on the approximation detailed by equations (18)-(20)
 #' of Chandler and Bate (2007), rather than equation (17), then this stated.
-#' @return The argument \code{x}, invisibly, as for all \code{\link{print}}
-#'   methods.
+#' @return The argument \code{x}, invisibly, as for all
+#'   \code{\link[base]{print}} methods.
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
 #'   loglikelihood function.
 #' @seealso \code{\link{compare_models}} to compare nested models using an

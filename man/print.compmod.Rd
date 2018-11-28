@@ -12,14 +12,14 @@
 \code{\link{compare_models}}.}
 
 \item{digits}{An integer. The argument \code{digits} to
-\code{\link{signif}}.}
+\code{\link[base:Round]{signif}}.}
 
 \item{...}{Additional optional arguments. At present no optional
 arguments are used.}
 }
 \value{
-The argument \code{x}, invisibly, as for all \code{\link{print}}
-  methods.
+The argument \code{x}, invisibly, as for all
+  \code{\link[base]{print}} methods.
 }
 \description{
 \code{print} method for class "compmod".

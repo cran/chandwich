@@ -166,6 +166,8 @@
 #'     \code{loglik} via ... in this call, or a previous call.}
 #'   \item{name}{The argument \code{name}, or the name of the function
 #'     \code{loglik} if \code{name} isn't supplied.}
+#'   \item{nobs}{The number of observations.}
+#'   \item{call}{The call to \code{adjust_loglik}.}
 #'   If \code{fixed_pars} is not \code{NULL} then there are further attributes
 #'   \item{fixed_pars}{The argument \code{fixed_pars}, with names inferred from
 #'     \code{par_names} if this was supplied.}
@@ -174,8 +176,8 @@
 #'   If \code{alg_deriv} and/or \code{alg_hess} were supplied then these are
 #'   returned as further attributes.
 #'
-#'   To view an individual attribute use \code{attr(x, "name")}
-#'   or \code{attributes(x)$name}.
+#'   To view an individual attribute called \code{att_name} use
+#'   \code{attr(x, "att_name")} or \code{attributes(x)$att_name}.
 #' @references Chandler, R. E. and Bate, S. (2007). Inference for clustered
 #'   data using the independence loglikelihood. \emph{Biometrika},
 #'   \strong{94}(1), 167-183. \url{http://dx.doi.org/10.1093/biomet/asm015}
@@ -183,6 +185,9 @@
 #'   and unadjusted and adjusted standard errors.
 #' @seealso \code{\link{plot.chandwich}} for plots of one-dimensional adjusted
 #'   loglikelihoods.
+#' @seealso \code{\link{confint.chandwich}}, \code{\link{anova.chandwich}},
+#'   \code{\link{coef.chandwich}}, \code{\link{vcov.chandwich}}
+#'   and \code{\link{logLik.chandwich}} for other \code{chandwich} methods.
 #' @seealso \code{\link{conf_intervals}} for confidence intervals for
 #'   individual parameters.
 #' @seealso \code{\link{conf_region}} for a confidence region for
@@ -798,6 +803,7 @@ adjust_loglik <- function(loglik = NULL, ..., cluster = NULL, p = NULL,
   attr(adjust_loglik_fn, "max_loglik") <- max_loglik
   attr(adjust_loglik_fn, "loglik_args") <- loglik_args
   attr(adjust_loglik_fn, "name") <- name
+  attr(adjust_loglik_fn, "nobs") <- n_loglik
   attr(adjust_loglik_fn, "call") <- match.call()
   class(adjust_loglik_fn) <- "chandwich"
   return(adjust_loglik_fn)
