@@ -44,8 +44,8 @@ NULL
 
 #' Oxford and Worthing annual maximum temperatures
 #'
-#' Annual maximum temperatures at Oxford and Worthing (England), for the
-#' period 1901 to 1980.
+#' Annual maximum temperatures, in degrees Fahrenheit, at Oxford and
+#' Worthing (England), for the period 1901 to 1980.
 #'
 #' @format A dataframe with 80 rows and 2 columns, named Oxford and Worthing.
 #' @source Tabony, R. C. (1983) Extreme value analysis in meteorology.
@@ -70,5 +70,5 @@ NULL
 #'   \url{http://www.stat.columbia.edu/~gelman/book/data/rats.asc}
 #' @references Tarone, R. E. (1982) The use of historical information in
 #'   testing for a trend in proportions. \emph{Biometrics}, \strong{38},
-#'   215-220. \url{https://doi.org/10.2307/2530304}
+#'   215-220. \url{https://www.jstor.org/stable/2530304}
 "rats"

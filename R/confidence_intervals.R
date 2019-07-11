@@ -321,7 +321,7 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 
 #' Confidence intervals
 #'
-#' Calculates confidence intervals for individual parameters
+#' Calculates confidence intervals for individual parameters.
 #'
 #' @param object An object of class \code{"chandwich"} returned by
 #'   \code{adjust_loglik}.
@@ -359,6 +359,11 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #' @param ... Further arguments to be passed to \code{\link[stats]{optim}}.
 #'   These may include \code{gr}, \code{method}, \code{lower}, \code{upper}
 #'   or \code{control}.
+#' @details Calculates (profile, if necessary) likelihood-based confidence
+#'   intervals for individual parameters, and also provides symmetric intervals
+#'   based on a normal approximation to the sampling distribution of the
+#'   estimator.  See also the S3 confint method
+#'   \code{\link{confint.chandwich}}.
 #' @return An object of class "confint", a list with components
 #'     \item{conf}{The argument \code{conf}.}
 #'     \item{cutoff}{A numeric scalar.  For values inside the
@@ -385,6 +390,8 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #'       \code{attr(object, "fixed_at")}, the arguments \code{fixed_pars} and
 #'       \code{fixed_at} to \code{\link{adjust_loglik}}, if these were
 #'       supplied.}
+#' @seealso \code{\link{confint.chandwich}} S3 confint method for objects
+#'   of class \code{"chandwich"} returned from \code{\link{adjust_loglik}}.
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
 #'   loglikelihood function.
 #' @seealso \code{\link{summary.chandwich}} for maximum likelihood estimates
@@ -410,10 +417,8 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #'
 #' # 95% likelihood-based confidence intervals, vertically adjusted
 #' conf_intervals(rat_res)
-#' \dontrun{
 #' # Unadjusted
 #' conf_intervals(rat_res, type = "none")
-#' }
 #'
 #' # -------------------------- GEV model, owtemps data -----------------------
 #' # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
@@ -816,7 +821,7 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
 #'   \code{attr(object, "fixed_pars")}.  \code{which_pars} must not contain
 #'   all of the unfixed parameters, i.e. there is no point in profiling over
 #'   all the unfixed parameters.
-#' @param level The confidence level required.
+#' @param level The confidence level required.  A numeric scalar in (0, 1).
 #' @param type A character scalar.  The argument \code{type} to the function
 #'   returned by \code{\link{adjust_loglik}}, that is, the type of adjustment
 #'   made to the independence loglikelihood function.
@@ -825,7 +830,7 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
 #'   \code{\link{conf_intervals}}, on which \code{confint.chandwich} is based.
 #' @return A matrix with columns giving lower and upper confidence limits for
 #'   each parameter. These will be labelled as (1 - level)/2 and
-#'   1 - (1 - level)/2 in % (by default 2.5% and 97.5%).
+#'   1 - (1 - level)/2 in \% (by default 2.5\% and 97.5\%).
 #'   The row names are the names of the model parameters,
 #'   if these are available.
 #' @seealso \code{\link{conf_intervals}}.

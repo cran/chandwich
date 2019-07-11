@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_summary_print.R
 \name{plot.confint}
 \alias{plot.confint}
-\title{Plot diagnostics a confint object}
+\title{Plot diagnostics for a confint object}
 \usage{
 \method{plot}{confint}(x, y = NULL, y2 = NULL, y3 = NULL,
   which_par = x$which_pars[1], conf = x$conf, add_lines = TRUE,
@@ -40,7 +40,7 @@ the argument \code{x} in \code{\link[graphics]{legend}}.}
 
 \item{...}{Additional arguments passed to \code{\link[graphics]{matplot}}
 or \code{\link[graphics]{legend}}.  The arguments \code{col}, \code{lty}
-and \code{lwd} will (in a consistent way) by both
+and \code{lwd} will be used (in a consistent way) by both
 \code{\link[graphics]{matplot}} and \code{\link[graphics]{legend}}.}
 }
 \value{

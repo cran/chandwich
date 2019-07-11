@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_summary_print.R
 \name{plot.chandwich}
 \alias{plot.chandwich}
-\title{Plot diagnostics a chandwich object}
+\title{Plot diagnostics for a chandwich object}
 \usage{
 \method{plot}{chandwich}(x, y, type = 1, legend = length(type) > 1,
   legend_pos = "topleft", ...)
@@ -30,13 +30,13 @@ the argument \code{x} in \code{\link[graphics]{legend}}.}
 
 \item{...}{Additional arguments passed to \code{\link[graphics]{matplot}}
   or \code{\link[graphics]{legend}}.  The arguments \code{col}, \code{lty}
-  and \code{lwd} will (in a consistent way) by both
+  and \code{lwd} will be used (in a consistent way) by both
   \code{\link[graphics]{matplot}} and \code{\link[graphics]{legend}}.
 
   If the argument \code{xlim} to \code{\link[graphics]{matplot}} is not
   supplied then the MLE minus (for \code{lower}) or plus (for \code{upper})
   standard errors is used.  If \code{type} does not include 4 then adjusted
-  standard errors are used.  Otherwise, the larger of the adjust and
+  standard errors are used.  Otherwise, the larger of the adjusted and
   unadjusted standard errors are used.}
 }
 \value{

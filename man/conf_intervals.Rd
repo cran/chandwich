@@ -82,7 +82,14 @@ An object of class "confint", a list with components
       supplied.}
 }
 \description{
-Calculates confidence intervals for individual parameters
+Calculates confidence intervals for individual parameters.
+}
+\details{
+Calculates (profile, if necessary) likelihood-based confidence
+  intervals for individual parameters, and also provides symmetric intervals
+  based on a normal approximation to the sampling distribution of the
+  estimator.  See also the S3 confint method
+  \code{\link{confint.chandwich}}.
 }
 \examples{
 # ------------------------- Binomial model, rats data ----------------------
@@ -98,10 +105,8 @@ rat_res <- adjust_loglik(loglik = binom_loglik, data = rats, par_names = "p")
 
 # 95\% likelihood-based confidence intervals, vertically adjusted
 conf_intervals(rat_res)
-\dontrun{
 # Unadjusted
 conf_intervals(rat_res, type = "none")
-}
 
 # -------------------------- GEV model, owtemps data -----------------------
 # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
@@ -169,6 +174,9 @@ pois_quad <- adjust_loglik(pois_glm_loglik, y = y, x = x, par_names = pars)
 conf_intervals(pois_quad)
 }
 \seealso{
+\code{\link{confint.chandwich}} S3 confint method for objects
+  of class \code{"chandwich"} returned from \code{\link{adjust_loglik}}.
+
 \code{\link{adjust_loglik}} to adjust a user-supplied
   loglikelihood function.
 

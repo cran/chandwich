@@ -1,6 +1,6 @@
 # ============================== plot.chandwich ===============================
 
-#' Plot diagnostics a chandwich object
+#' Plot diagnostics for a chandwich object
 #'
 #' \code{plot} method for class "chandwich".  Only applicable to an object
 #' \code{x} for which \code{attr(x, "p_current") = 1}, i.e. a model with
@@ -23,13 +23,13 @@
 #'   the argument \code{x} in \code{\link[graphics]{legend}}.
 #' @param ... Additional arguments passed to \code{\link[graphics]{matplot}}
 #'   or \code{\link[graphics]{legend}}.  The arguments \code{col}, \code{lty}
-#'   and \code{lwd} will (in a consistent way) by both
+#'   and \code{lwd} will be used (in a consistent way) by both
 #'   \code{\link[graphics]{matplot}} and \code{\link[graphics]{legend}}.
 #'
 #'   If the argument \code{xlim} to \code{\link[graphics]{matplot}} is not
 #'   supplied then the MLE minus (for \code{lower}) or plus (for \code{upper})
 #'   standard errors is used.  If \code{type} does not include 4 then adjusted
-#'   standard errors are used.  Otherwise, the larger of the adjust and
+#'   standard errors are used.  Otherwise, the larger of the adjusted and
 #'   unadjusted standard errors are used.
 #' @return Nothing is returned.
 #' @examples
@@ -128,10 +128,10 @@ plot.chandwich <- function(x, y, type = 1, legend = length(type) > 1,
   for_matplot <- c(list(x = x_vals, y = y_vals), user_args)
   do.call(graphics::matplot, for_matplot)
   # Add a legend?
-  if (legend | is.character(legend)) {
+  if (is.character(legend) || legend) {
     types <- c("vertical", "cholesky", "spectral", "none")
     legend_args$x <- legend_pos
-    if (legend) {
+    if (is.logical(legend) && legend) {
       legend_args$legend <- types[type]
     } else {
       legend_args$legend <- legend
@@ -189,7 +189,7 @@ summary.chandwich <- function(object,
 
 #' Print method for objects of class "summary.chandwich"
 #'
-#' \code{print} method for an object \code{object} of class "summary.chandwich".
+#' \code{print} method for an object \code{x} of class "summary.chandwich".
 #'
 #' @param x An object of class "summary.chandwich", a result of a call to
 #'   \code{\link{summary.chandwich}}.
@@ -249,7 +249,7 @@ print.chandwich <- function(x, ...) {
 
 # ============================== plot.confreg =================================
 
-#' Plot diagnostics a confreg object
+#' Plot diagnostics for a confreg object
 #'
 #' \code{plot} method for class "confreg".
 #' Plots confidence regions for pairs of parameters using the profile
@@ -274,7 +274,7 @@ print.chandwich <- function(x, ...) {
 #'   the argument \code{x} in \code{\link[graphics]{legend}}.
 #' @param ... Additional arguments passed to \code{\link[graphics]{contour}}
 #'  or \code{\link[graphics]{legend}}.  The arguments \code{col}, \code{lty}
-#'  and \code{lwd} will (in a consistent way) by both
+#'  and \code{lwd} will be used (in a consistent way) by both
 #'  \code{\link[graphics]{contour}} and \code{\link[graphics]{legend}}.
 #' @return Nothing is returned.
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
@@ -430,9 +430,9 @@ plot.confreg <- function(x, y = NULL, y2 = NULL, y3 = NULL, conf = 95,
     types <- c(types, y3$type)
   }
   # Add a legend?
-  if (legend | is.character(legend)) {
+  if (is.character(legend) || legend) {
     legend_args$x <- legend_pos
-    if (legend) {
+    if (is.logical(legend) && legend) {
       legend_args$legend <- types
     } else {
       legend_args$legend <- legend
@@ -447,7 +447,7 @@ plot.confreg <- function(x, y = NULL, y2 = NULL, y3 = NULL, conf = 95,
 
 # ============================== plot.confint =================================
 
-#' Plot diagnostics a confint object
+#' Plot diagnostics for a confint object
 #'
 #' \code{plot} method for class "confint".
 #' Plots the (profile) loglikelihood for a parameter using the values
@@ -482,7 +482,7 @@ plot.confreg <- function(x, y = NULL, y2 = NULL, y3 = NULL, conf = 95,
 #'   the argument \code{x} in \code{\link[graphics]{legend}}.
 #' @param ... Additional arguments passed to \code{\link[graphics]{matplot}}
 #'   or \code{\link[graphics]{legend}}.  The arguments \code{col}, \code{lty}
-#'   and \code{lwd} will (in a consistent way) by both
+#'   and \code{lwd} will be used (in a consistent way) by both
 #'   \code{\link[graphics]{matplot}} and \code{\link[graphics]{legend}}.
 #' @return Nothing is returned.
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
@@ -616,9 +616,9 @@ plot.confint <- function(x, y = NULL, y2 = NULL, y3 = NULL,
     graphics::abline(h = cutoff)
   }
   # Add a legend?
-  if (legend | is.character(legend)) {
+  if (is.character(legend) || legend) {
     legend_args$x <- legend_pos
-    if (legend) {
+    if (is.logical(legend) && legend) {
       legend_args$legend <- types
     } else {
       legend_args$legend <- legend

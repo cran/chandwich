@@ -1,10 +1,22 @@
+# chandwich 1.1.2
+
+## Bug fixes and minor improvements
+
+* A typo meant that the text in the Value section of the description of `confint.chandwich()` was cut short.  This has been corrected.
+
+* In `adjust_loglik()` if `p = 1` and the user supplies a scalar `H` instead of a matrix then an error is thrown by `dimnames()` just before the results are returned.  The calculations are correct, so the code has been modified trivially to avoid the error.
+
+* In the function returned from `adjust_loglik` the code to perform the horizontal adjustment of the loglikelihood has been changed to `x_star <- mle + as.vector(C %*% (x - mle))`: using `as.vector()` avoids a potential warning by ensuring vector + vector, not vector + matrix.
+
+* There were bugs in `plot.chandwich()`, `plot.confreg()` and `plot.confint()` that produced an error if the user tried to set their own legend using the `legend` argument.  These bugs have been corrected.
+
 # chandwich 1.1.1
 
 ## Bug fixes and minor improvements
 
 * The attribute `nobs` has been added to the object returned from `adjust_loglik()` and as an attribute to the object returned from `logLik.chandwich()`. 
 
-* In `compare_models()` the parameter names (if any) are passed to the (adjusted) loglikelihod function, in case they are required inside the loglikelihood function.
+* In `compare_models()` the parameter names (if any) are passed to the (adjusted) loglikelihood function, in case they are required inside the loglikelihood function.
 
 * There was a bug in the plot method for objects of class "confreg" returned from conf_region(): if the parameters had not been named by the user then ? appeared twice in the console, requiring the user to press return twice before the plot as produced.  This has been corrected. 
 
@@ -22,7 +34,7 @@
 
 ## Bug fixes and minor improvements
 
-* A bug in `compare_models()` has been fixed.  The bug resulted an error in cases where the argument `larger` corresponded to a simplication of the full model in which element i of the parameter was fixed but some element i+n, for n > 0, was not fixed.
+* A bug in `compare_models()` has been fixed.  The bug resulted an error in cases where the argument `larger` corresponded to a simplification of the full model in which element i of the parameter was fixed but some element i+n, for n > 0, was not fixed.
 
 * Estimated unadjusted (VC) and adjusted (adjVC) variance-covariance matrices of the free model parameters are now available in the object returned by `adjust_loglik()`.
 
