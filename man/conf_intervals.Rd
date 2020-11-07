@@ -4,9 +4,16 @@
 \alias{conf_intervals}
 \title{Confidence intervals}
 \usage{
-conf_intervals(object, which_pars = NULL, init = NULL, conf = 95,
-  mult = 1.5, num = 10, type = c("vertical", "cholesky", "spectral",
-  "none"), ...)
+conf_intervals(
+  object,
+  which_pars = NULL,
+  init = NULL,
+  conf = 95,
+  mult = 1.5,
+  num = 10,
+  type = c("vertical", "cholesky", "spectral", "none"),
+  ...
+)
 }
 \arguments{
 \item{object}{An object of class \code{"chandwich"} returned by
@@ -114,13 +121,13 @@ conf_intervals(rat_res, type = "none")
 gev_loglik <- function(pars, data) {
   o_pars <- pars[c(1, 3, 5)] + pars[c(2, 4, 6)]
   w_pars <- pars[c(1, 3, 5)] - pars[c(2, 4, 6)]
-  if (o_pars[2] <= 0 | w_pars[2] <= 0) return(-Inf)
+  if (isTRUE(o_pars[2] <= 0 | w_pars[2] <= 0)) return(-Inf)
   o_data <- data[, "Oxford"]
   w_data <- data[, "Worthing"]
   check <- 1 + o_pars[3] * (o_data - o_pars[1]) / o_pars[2]
-  if (any(check <= 0)) return(-Inf)
+  if (isTRUE(any(check <= 0))) return(-Inf)
   check <- 1 + w_pars[3] * (w_data - w_pars[1]) / w_pars[2]
-  if (any(check <= 0)) return(-Inf)
+  if (isTRUE(any(check <= 0))) return(-Inf)
   o_loglik <- log_gev(o_data, o_pars[1], o_pars[2], o_pars[3])
   w_loglik <- log_gev(w_data, w_pars[1], w_pars[2], w_pars[3])
   return(o_loglik + w_loglik)
@@ -141,7 +148,7 @@ large_v <- conf_intervals(large, which_pars = c("xi[0]", "xi[1]"))
 large_v
 plot(large_v)
 plot(large_v, which_par = "xi[1]")
-\dontrun{
+\donttest{
 # Unadjusted
 large_none <- conf_intervals(large, which_pars = c("xi[0]", "xi[1]"),
                              type = "none")

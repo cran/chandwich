@@ -4,7 +4,9 @@
 \name{rats}
 \alias{rats}
 \title{Rat tumor data}
-\format{A matrix with 71 rows and 2 columns.}
+\format{
+A matrix with 71 rows and 2 columns.
+}
 \source{
 Table 5.1 of Gelman, A., Carlin, J. B., Stern, H. S. Dunson, D. B.,
  Vehtari, A. and Rubin, D. B. (2013) \emph{Bayesian Data Analysis},
@@ -24,6 +26,6 @@ The second column (\code{n}) contains the total number of rats.
 \references{
 Tarone, R. E. (1982) The use of historical information in
   testing for a trend in proportions. \emph{Biometrics}, \strong{38},
-  215-220. \url{https://www.jstor.org/stable/2530304}
+  215-220.
 }
 \keyword{datasets}

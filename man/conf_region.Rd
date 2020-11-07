@@ -4,9 +4,17 @@
 \alias{conf_region}
 \title{Two-dimensional confidence regions}
 \usage{
-conf_region(object, which_pars = NULL, range1 = c(NA, NA),
-  range2 = c(NA, NA), conf = 95, mult = 2, num = c(10, 10),
-  type = c("vertical", "cholesky", "spectral", "none"), ...)
+conf_region(
+  object,
+  which_pars = NULL,
+  range1 = c(NA, NA),
+  range2 = c(NA, NA),
+  conf = 95,
+  mult = 2,
+  num = c(10, 10),
+  type = c("vertical", "cholesky", "spectral", "none"),
+  ...
+)
 }
 \arguments{
 \item{object}{An object of class \code{"chandwich"} returned by
@@ -93,13 +101,13 @@ parameters from which confidence regions can be plotted using
 gev_loglik <- function(pars, data) {
   o_pars <- pars[c(1, 3, 5)] + pars[c(2, 4, 6)]
   w_pars <- pars[c(1, 3, 5)] - pars[c(2, 4, 6)]
-  if (o_pars[2] <= 0 | w_pars[2] <= 0) return(-Inf)
+  if (isTRUE(o_pars[2] <= 0 | w_pars[2] <= 0)) return(-Inf)
   o_data <- data[, "Oxford"]
   w_data <- data[, "Worthing"]
   check <- 1 + o_pars[3] * (o_data - o_pars[1]) / o_pars[2]
-  if (any(check <= 0)) return(-Inf)
+  if (isTRUE(any(check <= 0))) return(-Inf)
   check <- 1 + w_pars[3] * (w_data - w_pars[1]) / w_pars[2]
-  if (any(check <= 0)) return(-Inf)
+  if (isTRUE(any(check <= 0))) return(-Inf)
   o_loglik <- log_gev(o_data, o_pars[1], o_pars[2], o_pars[3])
   w_loglik <- log_gev(w_data, w_pars[1], w_pars[2], w_pars[3])
   return(o_loglik + w_loglik)
@@ -115,7 +123,7 @@ par_names <- c("mu[0]", "mu[1]", "sigma[0]", "sigma[1]", "xi[0]", "xi[1]")
 large <- adjust_loglik(gev_loglik, data = owtemps, init = init,
                        par_names = par_names)
 
-\dontrun{
+\donttest{
 # Plots like those in Figure 4 of Chandler and Bate (2007)
 # (a)
 which_pars <- c("mu[0]", "mu[1]")
