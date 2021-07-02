@@ -352,10 +352,16 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #'   (based on approximate normal theory), extended
 #'   by a factor of the corresponding component of \code{mult}.
 #' @param num A numeric scalar.  The number of values at which to evaluate the
-#'   profile loglikelihood either side of the MLE.
+#'   profile loglikelihood either side of the MLE.  Increasing \code{num}
+#'   increases the accuracy of the confidence limits, but the code will take
+#'   longer to run.
 #' @param type A character scalar.  The argument \code{type} to the function
 #'   returned by \code{\link{adjust_loglik}}, that is, the type of adjustment
 #'   made to the independence loglikelihood function.
+#' @param profile A logical scalar.  If \code{FALSE} then only intervals based
+#'   on approximate large sample normal theory, which are symmetric about the
+#'   MLE, are returned (in \code{sym_CI}) and \code{prof_CI} in the returned
+#'   object will contain \code{NA}s.
 #' @param ... Further arguments to be passed to \code{\link[stats]{optim}}.
 #'   These may include \code{gr}, \code{method}, \code{lower}, \code{upper}
 #'   or \code{control}.
@@ -370,14 +376,18 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #'       confidence interval the profile loglikelihood lies above
 #'       \code{cutoff}.}
 #'     \item{parameter_vals, prof_loglik_vals}{\code{2 * num + 1} by
-#'       \code{length{which_pars}} numeric matrices.
+#'       \code{length(which_pars)} numeric matrices.
 #'       Column i of \code{parameter_vals} contains the profiled values of
 #'       parameter \code{which_par[i]}.  Column i of \code{prof_loglik_vals}
 #'       contains the corresponding values of the profile loglikelihood.}
 #'     \item{sym_CI, prof_CI}{\code{length(which_pars)}
 #'       by 2 numeric matrices.  Row i of \code{sym_CI} (\code{prof_CI})
 #'       contains the symmetric (profile loglikelihood-based) confidence
-#'       intervals for parameter \code{which_pars[i]}.}
+#'       intervals for parameter \code{which_pars[i]}.}  If a value in
+#'       \code{prof_CI} is \code{NA} then this means that the search for the
+#'       confidence limit did no extend far enough.  A remedy is to increase
+#'       the value of \code{mult}, or the relevant component of \code{mult},
+#'       and perhaps also increase \code{num}.
 #'     \item{max_loglik}{The value of the adjusted loglikelihood
 #'       at its maximum, stored in \code{object$max_loglik}.}
 #'     \item{type}{The argument \code{type} supplied in the call
@@ -488,7 +498,7 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 conf_intervals <- function(object, which_pars = NULL, init = NULL, conf = 95,
                      mult = 1.5, num = 10,
                      type = c("vertical", "cholesky", "spectral", "none"),
-                     ...) {
+                     profile = TRUE, ...) {
   type <- match.arg(type)
   # Fixed parameters, values at which they are fixed and parameter names
   fixed_pars <- attr(object, "fixed_pars")
@@ -558,59 +568,87 @@ conf_intervals <- function(object, which_pars = NULL, init = NULL, conf = 95,
   prof_CI <- matrix(NA, nrow = n_which_pars, ncol = 2)
   colnames(prof_CI) <- c("lower", "upper")
   parameter_vals <- matrix(NA, nrow = 2 * num + 1, ncol = n_which_pars)
-  prof_loglik_vals <- matrix(NA, nrow = 2 * num + 1, ncol = n_which_pars)
+  prof_loglik_vals <- matrix(-Inf, nrow = 2 * num + 1, ncol = n_which_pars)
   if (!is.null(full_par_names)) {
     rownames(prof_CI) <- full_par_names[which_pars]
     colnames(parameter_vals) <- full_par_names[which_pars]
     colnames(prof_loglik_vals) <- full_par_names[which_pars]
   }
-  # Insert the MLEs and the maximised loglikelihood values
-  parameter_vals[num + 1, ] <- which_mle
   max_loglik <- attr(object, "max_loglik")
-  prof_loglik_vals[num + 1, ] <- rep(max_loglik, n_which_pars)
-  # 100% confidence interval: where the profile loglikelihood lies above cutoff
   cutoff <- max_loglik - stats::qchisq(conf  / 100, 1) / 2
-  message("Waiting for profiling to be done...")
-  utils::flush.console()
-  for (i in 1:length(which_pars)) {
-    # MLE not including parameter being profiled and fixed parameters
-    sol <- res_mle[-c(which_pars[i], fixed_pars)]
-    # Lower tail ...
-    par_low <- lower[i]
-    par_vals <- seq(from = which_mle[i], to = par_low, length.out = num + 1)[-1]
-    for (j in 1:num) {
-      opt <- profile_loglik(object, prof_pars = which_pars[i],
-                            prof_vals = par_vals[j],
-                            init = sol, type = type, ...)
-      sol <- attr(opt, "free_pars")
-      parameter_vals[num - j + 1, i] <- par_vals[j]
-      prof_loglik_vals[num - j + 1, i] <- opt
+  # Only profile if profile = TRUE
+  if (profile) {
+    # Insert the MLEs and the maximised loglikelihood values
+    parameter_vals[num + 1, ] <- which_mle
+    prof_loglik_vals[num + 1, ] <- rep(max_loglik, n_which_pars)
+    # 100% confidence interval: where profile loglikelihood > cutoff
+    message("Waiting for profiling to be done...")
+    utils::flush.console()
+    for (i in 1:length(which_pars)) {
+      # MLE not including parameter being profiled and fixed parameters
+      sol <- res_mle[-c(which_pars[i], fixed_pars)]
+      # Lower tail ...
+      par_low <- lower[i]
+      par_vals <- seq(from = which_mle[i], to = par_low,
+                      length.out = num + 1)[-1]
+      crossed <- FALSE
+      j <- 1
+      while (!crossed && j <= num) {
+        opt <- profile_loglik(object, prof_pars = which_pars[i],
+                              prof_vals = par_vals[j],
+                              init = sol, type = type, ...)
+        sol <- attr(opt, "free_pars")
+        parameter_vals[num - j + 1, i] <- par_vals[j]
+        prof_loglik_vals[num - j + 1, i] <- opt
+        crossed <- opt < cutoff
+        j <- j + 1
+      }
+      # Reset initial estimates
+      sol <- res_mle[-c(which_pars[i], fixed_pars)]
+      # Upper tail ...
+      par_up <- upper[i]
+      par_vals <- seq(from = which_mle[i], to = par_up,
+                      length.out = num + 1)[-1]
+      crossed <- FALSE
+      j <- 1
+      while (!crossed && j <= num) {
+        opt <- profile_loglik(object, prof_pars = which_pars[i],
+                              prof_vals = par_vals[j],
+                              init = sol, type = type, ...)
+        sol <- attr(opt, "free_pars")
+        parameter_vals[num + j + 1, i] <- par_vals[j]
+        prof_loglik_vals[num + j + 1, i] <- opt
+        crossed <- opt < cutoff
+        j <- j + 1
+      }
+      # For debugging purposes only
+      #    plot(parameter_vals[, i], prof_loglik_vals[, i])
+      #    abline(v = which_mle[i])
+      #    abline(h = cutoff)
+      # Use linear interpolation to estimate the confidence limits
+      y <- prof_loglik_vals[, i]
+      x <- parameter_vals[, i]
+      # Find where the profile loglikelihood crosses cutoff
+      temp <- diff(y - cutoff > 0)
+      # Lower limit
+      z <- which(temp == 1)
+      if (length(z) == 0) {
+        low <- NA
+      } else {
+        low <- x[z] + (cutoff - y[z]) * (x[z + 1] - x[z]) / (y[z + 1] - y[z])
+      }
+      # Upper limit
+      z <- which(temp == -1)
+      if (length(z) == 0) {
+        up <- NA
+      } else {
+        up <- x[z] + (cutoff - y[z]) * (x[z + 1] - x[z]) / (y[z + 1] - y[z])
+      }
+      prof_CI[i, ] <- c(low, up)
     }
-    # Upper tail ...
-    par_up <- upper[i]
-    par_vals <- seq(from = which_mle[i], to = par_up, length.out = num + 1)[-1]
-    for (j in 1:num) {
-      opt <- profile_loglik(object, prof_pars = which_pars[i],
-                            prof_vals = par_vals[j],
-                            init = sol, type = type, ...)
-      sol <- attr(opt, "free_pars")
-      parameter_vals[num + j + 1, i] <- par_vals[j]
-      prof_loglik_vals[num + j + 1, i] <- opt
-    }
-    # Use linear interpolation to estimate the confidence limits
-    y <- prof_loglik_vals[, i]
-    x <- parameter_vals[, i]
-    # Find where the profile loglikelihood crosses cutoff
-    temp <- diff(y - cutoff > 0)
-    # Lower limit
-    z <- which(temp == 1)
-    low <- x[z] + (cutoff - y[z]) * (x[z + 1] - x[z]) / (y[z + 1] - y[z])
-    # Upper limit
-    z <- which(temp == -1)
-    up <- x[z] + (cutoff - y[z]) * (x[z + 1] - x[z]) / (y[z + 1] - y[z])
-    prof_CI[i, ] <- c(low, up)
   }
-  conf_list <- list(conf = conf, cutoff = cutoff, parameter_vals = parameter_vals,
+  conf_list <- list(conf = conf, cutoff = cutoff,
+                    parameter_vals = parameter_vals,
                     prof_loglik_vals = prof_loglik_vals, sym_CI = sym_CI,
                     prof_CI = prof_CI, max_loglik = attr(object, "max_loglik"),
                     type = type, which_pars = which_pars,
@@ -817,14 +855,18 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
 #'   of those supplied in \code{par_names} in the call to
 #'   \code{\link{adjust_loglik}} that produced \code{object}.
 #'
-#'   \code{which_pars} must not have any parameters in common with
-#'   \code{attr(object, "fixed_pars")}.  \code{which_pars} must not contain
+#'   \code{parm} must not have any parameters in common with
+#'   \code{attr(object, "fixed_pars")}.  \code{parm} must not contain
 #'   all of the unfixed parameters, i.e. there is no point in profiling over
 #'   all the unfixed parameters.
 #' @param level The confidence level required.  A numeric scalar in (0, 1).
 #' @param type A character scalar.  The argument \code{type} to the function
 #'   returned by \code{\link{adjust_loglik}}, that is, the type of adjustment
 #'   made to the independence loglikelihood function.
+#' @param profile A logical scalar. If \code{TRUE} then confidence intervals
+#'   based on an (adjusted) profile loglikelihood are returned.  If
+#'   \code{FALSE} then intervals based on approximate large sample normal
+#'   theory, which are symmetric about the MLE, are returned.
 #' @param ... Further arguments to be passed to \code{\link{conf_intervals}}.
 #' @details For details see the documentation for the function
 #'   \code{\link{conf_intervals}}, on which \code{confint.chandwich} is based.
@@ -833,7 +875,11 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
 #'   1 - (1 - level)/2 in \% (by default 2.5\% and 97.5\%).
 #'   The row names are the names of the model parameters,
 #'   if these are available.
-#' @seealso \code{\link{conf_intervals}}.
+#' @seealso The underlying function \code{\link{conf_intervals}}.  If you would
+#'   like to plot the profile loglikelihood function for a parameter then call
+#'   \code{\link{conf_intervals}} directly and then use the associated plot
+#'   method.  Note that in \code{conf_intervals()} a parameter choice is
+#'   specified using an argument called \code{which_pars}, not \code{parm}.
 #' @seealso \code{\link{conf_region}} for a confidence region for
 #'   pairs of parameters.
 #' @seealso \code{\link{compare_models}} for an adjusted likelihood ratio test
@@ -869,22 +915,29 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
 #' large <- adjust_loglik(gev_loglik, data = owtemps, init = init,
 #'                        par_names = par_names)
 #' confint(large)
+#' confint(large, profile = FALSE)
 #' @export
 confint.chandwich <- function (object, parm, level = 0.95,
                                type = c("vertical", "cholesky", "spectral",
-                                        "none"), ...) {
+                                        "none"),
+                               profile = TRUE, ...) {
   if (!inherits(object, "chandwich")) {
     stop("use only with \"chandwich\" objects")
   }
   type <- match.arg(type)
   if (missing(parm)) {
     temp <- conf_intervals(object = object, conf = 100 * level, type = type,
-                           ...)
+                           profile = profile, ...)
   } else {
     temp <- conf_intervals(object = object, which_pars = parm,
-                           conf = 100 * level, type = type, ...)
+                           conf = 100 * level, type = type, profile = profile,
+                           ...)
   }
-  temp <- temp$prof_CI
+  if (profile) {
+    temp <- temp$prof_CI
+  } else {
+    temp <- temp$sym_CI
+  }
   a <- (1 - level) / 2
   a <- c(a, 1 - a)
   pct <- paste(round(100 * a, 1), "%")

@@ -9,6 +9,7 @@
   parm,
   level = 0.95,
   type = c("vertical", "cholesky", "spectral", "none"),
+  profile = TRUE,
   ...
 )
 }
@@ -26,8 +27,8 @@
   of those supplied in \code{par_names} in the call to
   \code{\link{adjust_loglik}} that produced \code{object}.
 
-  \code{which_pars} must not have any parameters in common with
-  \code{attr(object, "fixed_pars")}.  \code{which_pars} must not contain
+  \code{parm} must not have any parameters in common with
+  \code{attr(object, "fixed_pars")}.  \code{parm} must not contain
   all of the unfixed parameters, i.e. there is no point in profiling over
   all the unfixed parameters.}
 
@@ -36,6 +37,11 @@
 \item{type}{A character scalar.  The argument \code{type} to the function
 returned by \code{\link{adjust_loglik}}, that is, the type of adjustment
 made to the independence loglikelihood function.}
+
+\item{profile}{A logical scalar. If \code{TRUE} then confidence intervals
+based on an (adjusted) profile loglikelihood are returned.  If
+\code{FALSE} then intervals based on approximate large sample normal
+theory, which are symmetric about the MLE, are returned.}
 
 \item{...}{Further arguments to be passed to \code{\link{conf_intervals}}.}
 }
@@ -84,9 +90,14 @@ par_names <- c("mu[0]", "mu[1]", "sigma[0]", "sigma[1]", "xi[0]", "xi[1]")
 large <- adjust_loglik(gev_loglik, data = owtemps, init = init,
                        par_names = par_names)
 confint(large)
+confint(large, profile = FALSE)
 }
 \seealso{
-\code{\link{conf_intervals}}.
+The underlying function \code{\link{conf_intervals}}.  If you would
+  like to plot the profile loglikelihood function for a parameter then call
+  \code{\link{conf_intervals}} directly and then use the associated plot
+  method.  Note that in \code{conf_intervals()} a parameter choice is
+  specified using an argument called \code{which_pars}, not \code{parm}.
 
 \code{\link{conf_region}} for a confidence region for
   pairs of parameters.

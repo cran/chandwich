@@ -3,8 +3,7 @@
 #' Loglikelihood adjustment using the sandwich estimator
 #'
 #' Performs adjustments of a user-supplied independence loglikelihood for the
-#' presence of cluster dependence, following
-#' \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
+#' presence of cluster dependence, following Chandler and Bate (2007).
 #' The user provides a function that returns a vector of observation-specific
 #' loglikelihood contributions and a vector that indicates cluster membership.
 #' The loglikelihood of a sub-model can be adjusted by fixing a set of
@@ -164,6 +163,8 @@
 #'     supplied in this call, or a previous call.}
 #'   \item{loglik_args}{A list containing the further arguments passed to
 #'     \code{loglik} via ... in this call, or a previous call.}
+#'   \item{loglikVecMLE}{a vector containing the contributions of individual
+#'     observations to the independence log-likelihood evaluated at the MLE.}
 #'   \item{name}{The argument \code{name}, or the name of the function
 #'     \code{loglik} if \code{name} isn't supplied.}
 #'   \item{nobs}{The number of observations.}
@@ -180,7 +181,7 @@
 #'   \code{attr(x, "att_name")} or \code{attributes(x)$att_name}.
 #' @references Chandler, R. E. and Bate, S. (2007). Inference for clustered
 #'   data using the independence loglikelihood. \emph{Biometrika},
-#'   \strong{94}(1), 167-183. \url{http://dx.doi.org/10.1093/biomet/asm015}
+#'   \strong{94}(1), 167-183. \doi{10.1093/biomet/asm015}
 #' @seealso \code{\link{summary.chandwich}} for maximum likelihood estimates
 #'   and unadjusted and adjusted standard errors.
 #' @seealso \code{\link{plot.chandwich}} for plots of one-dimensional adjusted

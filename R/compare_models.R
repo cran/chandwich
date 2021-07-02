@@ -3,10 +3,9 @@
 #' Comparison of nested models
 #'
 #' Compares nested models using the adjusted likelihood ratio test statistic
-#' (ALRTS) described in Section 3.5 of
-#' \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
-#' The nesting must result from the simple constraint that a subset of the
-#' parameters of the larger model is held fixed.
+#' (ALRTS) described in Section 3.5 of Chandler and Bate (2007). The nesting
+#' must result from the simple constraint that a subset of the parameters of
+#' the larger model is held fixed.
 #'
 #' @param larger An object of class \code{"chandwich"} returned by
 #'   \code{\link{adjust_loglik}}.  The larger of the two models.
@@ -53,9 +52,8 @@
 #'   \code{smaller} or \code{fixed_pars}.  If both are supplied then
 #'   \code{smaller} takes precedence.
 #'
-#'   For full details see Section 3.5 of
-#'   \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
-#'   if \code{approx = FALSE} then the a likelihood ratio test of the null
+#'   For full details see Section 3.5 of Chandler and Bate (2007).
+#'   If \code{approx = FALSE} then the a likelihood ratio test of the null
 #'   hypothesis that the smaller model is a valid simplification of the larger
 #'   model is carried out directly using equation (17) of Chandler and Bate
 #'   (2007) based on the adjusted loglikelihood under the larger model,
@@ -86,7 +84,7 @@
 #'  \item{approx}{the argument \code{approx}.}
 #' @references Chandler, R. E. and Bate, S. (2007). Inference for clustered
 #'   data using the independence loglikelihood. \emph{Biometrika},
-#'   \strong{94}(1), 167-183. \url{http://dx.doi.org/10.1093/biomet/asm015}
+#'   \strong{94}(1), 167-183. \doi{10.1093/biomet/asm015}
 #' @seealso \code{\link{adjust_loglik}} to adjust a user-supplied
 #'   loglikelihood function.
 #' @seealso \code{\link{conf_intervals}} for confidence intervals for
@@ -395,8 +393,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
 #'
 #' \code{anova} method for objects of class \code{"chandwich"}.
 #' Compares two or more nested models using the adjusted likelihood ratio
-#' test statistic (ALRTS) described in Section 3.5 of
-#' \href{http://dx.doi.org/10.1093/biomet/asm015}{Chandler and Bate (2007)}.
+#' test statistic (ALRTS) described in Section 3.5 of Chandler and Bate (2007).
 #' The nesting must result from the simple constraint that a subset of the
 #' parameters of the larger model is held fixed.
 #'
@@ -434,7 +431,7 @@ compare_models <- function(larger, smaller = NULL, approx = FALSE,
 #'   pairs of parameters.
 #' @references Chandler, R. E. and Bate, S. (2007). Inference for clustered
 #'   data using the independence loglikelihood. \emph{Biometrika},
-#'   \strong{94}(1), 167-183. \url{http://dx.doi.org/10.1093/biomet/asm015}
+#'   \strong{94}(1), 167-183. \doi{10.1093/biomet/asm015}
 #' @examples
 #' # -------------------------- GEV model, owtemps data -----------------------
 #' # ------------ following Section 5.2 of Chandler and Bate (2007) -----------
@@ -517,11 +514,37 @@ anova.chandwich <- function (object, object2, ...) {
   model_list <- model_list[m_order]
   n_pars <- n_pars[m_order]
   n_models <- length(model_list)
-  # Do the testing
+  # Nested models: the largest model is model_list[[1]]
   alrts <- p_value <- numeric(n_models - 1)
+  # Check whether objects have explicit fixed_pars attributes
+  is_fp <- vapply(model_list, function(x) !is.null(attr(x, "fixed_pars")), NA)
+  # If there are any explicit fixed_pars attributes then we do not execute
+  # part of the code in the loop
   for (i in 2:n_models) {
     larger <- model_list[[i - 1]]
     smaller <- model_list[[i]]
+    # Only execute the code in the if statement if all of is_fp is FALSE
+    if (!any(is_fp)) {
+      all_pars <- attr(larger, "free_pars")
+      larger_names <- names(all_pars)
+      smaller_names <- names(attr(model_list[[i]], "free_pars"))
+      # Check that the names of all the parameters in the smaller model are
+      # present in the larger model
+      if (!all(smaller_names %in% larger_names)) {
+        stop("parameter names are not nested")
+      }
+      # Which parameters have been fixed in moving from larger to smaller?
+      fixed_pars <- which(!(larger_names %in% smaller_names))
+      fixed_pars <- all_pars[fixed_pars]
+      fixed_at <- rep(0, length(fixed_pars))
+      names(fixed_at) <- names(fixed_pars)
+      attr(smaller, "fixed_pars") <- fixed_pars
+      attr(smaller, "fixed_at") <- fixed_at
+      # In comparing smaller to larger, treat larger as the full model,
+      # i.e. having no fixed parameters
+      attr(larger, "fixed_pars") <- NULL
+    }
+    # Do the testing
     res <- do.call(compare_models, c(list(larger = larger, smaller = smaller),
                                      for_compare_models))
     alrts[i - 1] <- res$alrts
