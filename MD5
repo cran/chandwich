@@ -1,6 +1,6 @@
-aebded3a8e2f295a3b418b16811ffcb3 *DESCRIPTION
+e614b1ec9ff7de4850309b553c7f8906 *DESCRIPTION
 d1e6de1d92d73c20822872dd350c3336 *NAMESPACE
-8da53436a52dccc35539159544fcbdd7 *NEWS.md
+701077543d64246100aac5721bf23cf9 *NEWS.md
 128a9deb6c2f3b82d18db4ac9f527def *R/adjust_loglik.R
 3fa26deea2937d19930e5a821fa912c2 *R/chandwich.R
 d3ad9d29c1724a533e67897339d5149a *R/compare_models.R
@@ -8,14 +8,14 @@ e9fec5f6a97587809559b20dea240efc *R/confidence_intervals.R
 deb15e6352de08ca03e1426be4be99db *R/dgev.R
 96f8fd86b9112361826c712906bfffd9 *R/methods.R
 5c5529f01269b29da9c8322c243f680e *R/plot_summary_print.R
-3f48402ce1a78af241095c92ba6555e5 *README.md
-795bd44d0750480d9946d380dea21d6f *build/partial.rdb
-45fe710bcf953f637d2db3cd204b4248 *build/vignette.rds
+3ae0bc519e9bdd928c5110f3915e33b9 *README.md
+9246666a153584f6a8d8162358e1af7e *build/partial.rdb
+9b82825973c3fb60ea02fead7d3603e7 *build/vignette.rds
 60f895766285fe8e9e96624d2624116a *data/owtemps.rda
 d4f9ae408e79666bd2b8b3f4dc2c0ee0 *data/rats.rda
 ba682765a61799c4c6658532afb46322 *inst/doc/chandwich-vignette.R
-d1e3ee68b10d2452c4889e34fa81a7ef *inst/doc/chandwich-vignette.Rmd
-9d985261265c71cf201fac93487334cc *inst/doc/chandwich-vignette.html
+3b63cdda6f11e93b69fe386e8f06cedd *inst/doc/chandwich-vignette.Rmd
+68c5ea1619d4641e5f2316eb7bc4beb1 *inst/doc/chandwich-vignette.html
 77921b8b9b75858a01f2f5a1db65b315 *man/adjust_loglik.Rd
 b931371fe54e7a6678e7041d0f008346 *man/anova.chandwich.Rd
 1fdbfa136d022dcdb7e5b98a6ad55242 *man/chandwich.Rd
@@ -49,5 +49,6 @@ df6d29ac4837144a5aa36f458886ae1d *tests/testthat/test-plot_confint.R
 01269b1bd16c6424b620d987942645db *tests/testthat/test-plot_confreg.R
 b99da16110c7d6880cb25ccbba43baba *tests/testthat/test-print_confint.R
 056e45929ff24ba7a38bdbea371a32ed *tests/testthat/test-summary_chandwich.R
-d1e3ee68b10d2452c4889e34fa81a7ef *vignettes/chandwich-vignette.Rmd
-a419f279d4d8d84c94f22990e7e54680 *vignettes/chandwich.bib
+3b63cdda6f11e93b69fe386e8f06cedd *vignettes/chandwich-vignette.Rmd
+cdade9a13f2c58313f8974aca75ec5eb *vignettes/chandwich.bib
+9bd4de38ef84d4f00de92fb76f2d1711 *vignettes/taylor-and-francis-chicago-author-date.csl
