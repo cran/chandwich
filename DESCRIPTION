@@ -1,7 +1,7 @@
 Package: chandwich
 Title: Chandler-Bate Sandwich Loglikelihood Adjustment
-Version: 1.1.5
-Date: 2021-10-30
+Version: 1.1.6
+Date: 2023-08-25
 Authors@R: c(
     person(c("Paul", "J."), "Northrop", email = "p.northrop@ucl.ac.uk", 
       role = c("aut", "cre", "cph")),
@@ -23,16 +23,17 @@ License: GPL (>= 2)
 LazyData: TRUE
 Encoding: UTF-8
 Depends: R (>= 3.3.0)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 Suggests: knitr, rmarkdown, sandwich, testthat
 VignetteBuilder: knitr
 URL: https://paulnorthrop.github.io/chandwich/,
         https://github.com/paulnorthrop/chandwich
 BugReports: https://github.com/paulnorthrop/chandwich/issues
+Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-10-30 13:44:05 UTC; paul
+Packaged: 2023-08-25 21:16:15 UTC; paul
 Author: Paul J. Northrop [aut, cre, cph],
   Richard E. Chandler [aut, cph]
 Maintainer: Paul J. Northrop <p.northrop@ucl.ac.uk>
 Repository: CRAN
-Date/Publication: 2021-10-30 14:10:12 UTC
+Date/Publication: 2023-08-25 21:40:02 UTC

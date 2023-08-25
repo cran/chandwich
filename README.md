@@ -3,13 +3,16 @@
 
 # chandwich
 
-[![Travis-CI Build
-Status](https://travis-ci.org/paulnorthrop/chandwich.svg?branch=master)](https://travis-ci.org/paulnorthrop/chandwich)
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/paulnorthrop/chandwich?branch=master&svg=true)](https://ci.appveyor.com/project/paulnorthrop/chandwich)
+[![R-CMD-check](https://github.com/paulnorthrop/chandwich/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/paulnorthrop/chandwich/actions/workflows/R-CMD-check.yaml)
 [![Coverage
-Status](https://codecov.io/github/paulnorthrop/chandwich/coverage.svg?branch=master)](https://codecov.io/github/paulnorthrop/chandwich?branch=master)
+Status](https://codecov.io/github/paulnorthrop/chandwich/coverage.svg?branch=master)](https://app.codecov.io/github/paulnorthrop/chandwich?branch=master)
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/chandwich)](https://cran.r-project.org/package=chandwich)
+[![Downloads
+(monthly)](https://cranlogs.r-pkg.org/badges/chandwich?color=brightgreen)](https://cran.r-project.org/package=chandwich)
+[![Downloads
+(total)](https://cranlogs.r-pkg.org/badges/grand-total/chandwich?color=brightgreen)](https://cran.r-project.org/package=chandwich)
 
 ## Chandler-Bate Sandwich Loglikelihood Adjustment
 

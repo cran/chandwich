@@ -25,15 +25,15 @@
 #'   two free parameters, i.e. \code{attr(object, "p_current") = 2} then
 #'   \code{which_pars} is set to \code{attr(object, "free_pars") = 2}.
 #' @param range1,range2 Numeric vectors of length 2.  Respective ranges (of
-#'   the form \code{lower, upper}) of values of \code{which_pars[1]} and
+#'   the form \code{c(lower, upper)}) of values of \code{which_pars[1]} and
 #'   \code{which_pars[2]} over which to profile.
 #'   Missing values in \code{range1} and/or \code{range2} are
 #'   filled in using \code{conf} and \code{mult}.  See below for details.
 #' @param conf A numeric scalar in (0, 100).  The highest confidence level
-#'   of interest. This is only relevant if \code{lower} and \code{upper} are
-#'   not supplied.  In that event \code{conf} is used, in combination with
-#'   \code{mult}, to try to set up the grid of parameter values to include
-#'   the largest confidence region of interest.
+#'   of interest. This is only relevant if \code{range1} and/or \code{range2}
+#'   are not completely specified.  In that event \code{conf} is used,
+#'   in combination with \code{mult}, to try to set up the grid of parameter
+#'   values to include the largest confidence region of interest.
 #' @param mult A numeric vector of length 1 or the same length as
 #'   \code{which_pars}.
 #'   The search for the profile loglikelihood-based confidence limits is
@@ -426,7 +426,8 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #' rat_res <- adjust_loglik(loglik = binom_loglik, data = rats, par_names = "p")
 #'
 #' # 95% likelihood-based confidence intervals, vertically adjusted
-#' conf_intervals(rat_res)
+#' ci <- conf_intervals(rat_res)
+#' plot(ci)
 #' # Unadjusted
 #' conf_intervals(rat_res, type = "none")
 #'
@@ -496,9 +497,9 @@ conf_region <- function(object, which_pars = NULL, range1 = c(NA, NA),
 #' conf_intervals(pois_quad)
 #' @export
 conf_intervals <- function(object, which_pars = NULL, init = NULL, conf = 95,
-                     mult = 1.5, num = 10,
-                     type = c("vertical", "cholesky", "spectral", "none"),
-                     profile = TRUE, ...) {
+                           mult = 1.5, num = 10, type =
+                             c("vertical", "cholesky", "spectral", "none"),
+                           profile = TRUE, ...) {
   type <- match.arg(type)
   # Fixed parameters, values at which they are fixed and parameter names
   fixed_pars <- attr(object, "fixed_pars")
@@ -917,10 +918,10 @@ profile_loglik <- function(object, prof_pars = NULL, prof_vals = NULL,
 #' confint(large)
 #' confint(large, profile = FALSE)
 #' @export
-confint.chandwich <- function (object, parm, level = 0.95,
-                               type = c("vertical", "cholesky", "spectral",
-                                        "none"),
-                               profile = TRUE, ...) {
+confint.chandwich <- function(object, parm, level = 0.95,
+                              type = c("vertical", "cholesky", "spectral",
+                                       "none"),
+                              profile = TRUE, ...) {
   if (!inherits(object, "chandwich")) {
     stop("use only with \"chandwich\" objects")
   }
